@@ -17,31 +17,38 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../Navigation';
 
-const LoginScreen = () => {
+const RegisterScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const handleLogin = () => {
-    // Lógica de login será implementada aqui
-    console.log('Login attempt:', username, password);
-    
-    // Em uma aplicação real, faríamos uma validação com servidor
-    // Por agora, apenas verificamos se os campos estão preenchidos
-    if (username && password) {
-      navigation.navigate('Home');
-    } else {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos');
-    }
-  };
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleRegister = () => {
-    // Usar o nome exato da rota como está definido em RootStackParamList
-    navigation.navigate('Register');
+    // Validações básicas
+    if (!username || !email || !password || !confirmPassword) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Erro', 'As senhas não coincidem');
+      return;
+    }
+
+    // Aqui implementaríamos a lógica de registro real
+    console.log('Register attempt:', { username, email, password });
+    
+    // Após registro bem-sucedido, voltaríamos para a tela de login
+    Alert.alert(
+      'Sucesso', 
+      'Cadastro realizado com sucesso!', 
+      [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+    );
   };
 
   return (
-    <BaseScreen>
+    <BaseScreen showBackButton={true}>
       <StatusBar style="auto" />
       
       <KeyboardAvoidingView
@@ -69,6 +76,16 @@ const LoginScreen = () => {
           
           <TextInput
             style={styles.input}
+            placeholder="Email:"
+            placeholderTextColor="#fff"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          
+          <TextInput
+            style={styles.input}
             placeholder="Senha:"
             placeholderTextColor="#fff"
             value={password}
@@ -76,18 +93,20 @@ const LoginScreen = () => {
             secureTextEntry
           />
           
+          <TextInput
+            style={styles.input}
+            placeholder="Confirmar senha:"
+            placeholderTextColor="#fff"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+          
           <TouchableOpacity
-            style={styles.loginButton}
-            onPress={handleLogin}
+            style={styles.registerButton}
+            onPress={handleRegister}
           >
-            <Text style={styles.loginButtonText}>Login</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Não possui uma conta?</Text>
-          <TouchableOpacity onPress={handleRegister}>
-            <Text style={styles.registerLink}>Cadastrar-se</Text>
+            <Text style={styles.registerButtonText}>Registrar</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -101,12 +120,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  headerText: {
-    fontSize: theme.fontSizes.large,
-    fontWeight: theme.fontWeights.light,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.lg,
   },
   logoContainer: {
     alignItems: 'center',
@@ -137,34 +150,18 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     fontSize: theme.fontSizes.regular,
   },
-  loginButton: {
+  registerButton: {
     backgroundColor: theme.colors.button.primary,
     borderRadius: theme.borderRadius.large,
     paddingVertical: theme.spacing.md,
     alignItems: 'center',
     marginTop: theme.spacing.md,
   },
-  loginButtonText: {
+  registerButtonText: {
     color: theme.colors.button.text,
     fontSize: theme.fontSizes.medium,
     fontWeight: theme.fontWeights.bold,
   },
-  registerContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: theme.spacing.lg,
-  },
-  registerText: {
-    fontSize: theme.fontSizes.regular,
-    color: theme.colors.text.inverted,
-    marginBottom: theme.spacing.xs,
-  },
-  registerLink: {
-    fontSize: theme.fontSizes.medium,
-    color: theme.colors.accent,
-    fontWeight: theme.fontWeights.bold,
-  },
 });
 
-export default LoginScreen;
+export default RegisterScreen;

@@ -4,6 +4,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 // Telas
 import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
+import HomeScreen from './screens/HomeScreen';
 
 // Definição dos tipos de parâmetros para as rotas
 export type RootStackParamList = {
@@ -12,6 +14,7 @@ export type RootStackParamList = {
   Register: undefined;
 };
 
+// Crie o navigator com tipagem explícita
 const Stack = createStackNavigator<RootStackParamList>();
 
 const Navigation = () => {
@@ -24,7 +27,8 @@ const Navigation = () => {
         }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
-        {/* Adicionar outras telas posteriormente */}
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

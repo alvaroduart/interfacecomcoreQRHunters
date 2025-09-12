@@ -1,12 +1,18 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, SafeAreaView, ViewStyle, StatusBar, DimensionValue } from 'react-native';
+import { View, StyleSheet, SafeAreaView, ViewStyle, StatusBar, DimensionValue, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import CurvedBackground from '../components/CurvedBackground';
 import theme from '../theme/theme';
+import { useNavigation, StackActions } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../Navigation';
 
 interface BaseScreenProps {
   children: ReactNode;
   backgroundColor?: string;
   showCurvedBackground?: boolean;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
   curvedBackgroundProps?: {
     color?: string;
     height?: DimensionValue;
@@ -24,6 +30,8 @@ const BaseScreen: React.FC<BaseScreenProps> = ({
   children,
   backgroundColor = theme.colors.background,
   showCurvedBackground = true,
+  showBackButton = false,
+  onBackPress,
   curvedBackgroundProps = {
     color: theme.colors.primary,
     height: '40%',
@@ -32,9 +40,25 @@ const BaseScreen: React.FC<BaseScreenProps> = ({
   },
   style = {},
 }) => {
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      navigation.goBack();
+    }
+  };
+  
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }, style]}>
       <StatusBar translucent backgroundColor="transparent" />
+      
+      {showBackButton && (
+        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+      )}
       
       <View style={styles.contentContainer}>
         {children}
@@ -60,6 +84,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: theme.spacing.lg,
     zIndex: 2,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
 });
 

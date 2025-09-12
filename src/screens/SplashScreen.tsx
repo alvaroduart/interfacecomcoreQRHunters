@@ -1,0 +1,88 @@
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Image, Animated } from 'react-native';
+import theme from '../theme/theme';
+
+interface SplashScreenProps {
+  onFinish: () => void;
+}
+
+const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
+  // Animações
+  const opacity = new Animated.Value(0);
+  const scale = new Animated.Value(0.8);
+
+  useEffect(() => {
+    // Sequência de animações
+    Animated.sequence([
+      // Fade-in e escala
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scale, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]),
+      // Aguarda um pouco
+      Animated.delay(1000),
+      // Fade-out
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      // Quando a animação terminar, chamamos o callback
+      onFinish();
+    });
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Animated.View 
+        style={[
+          styles.content, 
+          { 
+            opacity, 
+            transform: [{ scale }] 
+          }
+        ]}
+      >
+        <Image 
+          source={require('../assets/logo.png')} 
+          style={styles.logo} 
+        />
+        <Text style={styles.title}>QrHunters</Text>
+      </Animated.View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    alignItems: 'center',
+  },
+  logo: {
+    width: 200,
+    height: 200,
+    marginBottom: -20,
+  },
+  title: {
+    fontSize: 42,
+    fontWeight: theme.fontWeights.bold,
+    color: theme.colors.primary,
+  },
+});
+
+export default SplashScreen;
