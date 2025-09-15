@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Navigation from './src/Navigation';
+import AppNavigator from './src/navigation/AppNavigator';
 import SplashScreen from './src/screens/SplashScreen';
 
 export default function App() {
@@ -16,7 +16,7 @@ export default function App() {
       {isLoading ? (
         <SplashScreen onFinish={handleSplashFinish} />
       ) : (
-        <Navigation />
+        <AppNavigator />
       )}
     </GestureHandlerRootView>
   );

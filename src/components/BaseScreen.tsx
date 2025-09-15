@@ -5,7 +5,7 @@ import CurvedBackground from '../components/CurvedBackground';
 import theme from '../theme/theme';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../Navigation';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 interface BaseScreenProps {
   children: ReactNode;

@@ -15,7 +15,7 @@ import BaseScreen from '../components/BaseScreen';
 import theme from '../theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../Navigation';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 const RegisterScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -61,7 +61,6 @@ const RegisterScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.logoText}>QrHunters</Text>
         </View>
         
         <View style={styles.inputContainer}>

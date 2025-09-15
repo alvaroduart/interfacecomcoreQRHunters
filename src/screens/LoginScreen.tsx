@@ -15,7 +15,7 @@ import BaseScreen from '../components/BaseScreen';
 import theme from '../theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../Navigation';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 const LoginScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -29,7 +29,10 @@ const LoginScreen = () => {
     // Em uma aplicação real, faríamos uma validação com servidor
     // Por agora, apenas verificamos se os campos estão preenchidos
     if (username && password) {
-      navigation.navigate('Home');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainApp' }],
+      });
     } else {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
     }
@@ -54,7 +57,6 @@ const LoginScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.logoText}>QrHunters</Text>
         </View>
         
         <View style={styles.inputContainer}>

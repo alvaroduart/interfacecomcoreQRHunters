@@ -12,6 +12,7 @@ export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Register: undefined;
+  MainApp: undefined;
 };
 
 // Crie o navigator com tipagem explícita
