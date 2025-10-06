@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">11.76% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/17</span>
+                <span class='fraction'>17/17</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">12.5% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/16</span>
+                <span class='fraction'>16/16</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -151,37 +151,37 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -228,38 +228,38 @@ import { makeJourneyUseCases } from '../core/factories';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import theme from '../theme/theme';
 &nbsp;
-const HomeScreen = <span class="fstat-no" title="function not covered" >()</span> =&gt; {
-  const navigation = <span class="cstat-no" title="statement not covered" >useNavigation&lt;StackNavigationProp&lt;RootStackParamList&gt;&gt;();</span>
-  const [journeys, setJourneys] = <span class="cstat-no" title="statement not covered" >useState&lt;Journey[]&gt;([]);</span>
+const HomeScreen = () =&gt; {
+  const navigation = useNavigation&lt;StackNavigationProp&lt;RootStackParamList&gt;&gt;();
+  const [journeys, setJourneys] = useState&lt;Journey[]&gt;([]);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-    const fetchJourneys = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
-      const { getAllJourneysUseCase } = <span class="cstat-no" title="statement not covered" >makeJourneyUseCases();</span>
-      const result = <span class="cstat-no" title="statement not covered" >await getAllJourneysUseCase.execute();</span>
-<span class="cstat-no" title="statement not covered" >      setJourneys(result);</span>
+  useEffect(() =&gt; {
+    const fetchJourneys = async () =&gt; {
+      const { getAllJourneysUseCase } = makeJourneyUseCases();
+      const result = await getAllJourneysUseCase.execute();
+      setJourneys(result);
     };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    fetchJourneys();</span>
+    fetchJourneys();
   }, []);
 &nbsp;
-  const handleJourneyPress = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(j</span>ourneyId: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    navigation.navigate('MainApp', { screen: 'Route', params: { journeyId } });</span>
+  const handleJourneyPress = (journeyId: string) =&gt; {
+    navigation.navigate('MainApp', { screen: 'Route', params: { journeyId } });
   };
 &nbsp;
-  const renderItem = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({</span> item }: { item: Journey }) =&gt; (</span>
-<span class="cstat-no" title="statement not covered" >    &lt;TouchableOpacity style={styles.itemContainer} onPress={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >handleJourneyPress(item.id)}</span>&gt;</span>
+  const renderItem = ({ item }: { item: Journey }) =&gt; (
+    &lt;TouchableOpacity style={styles.itemContainer} onPress={() =&gt; handleJourneyPress(item.id)}&gt;
       &lt;Text style={styles.itemTitle}&gt;{item.name}&lt;/Text&gt;
       &lt;Text style={styles.itemDescription}&gt;{item.description}&lt;/Text&gt;
     &lt;/TouchableOpacity&gt;
   );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;View style={styles.container}&gt;
       &lt;Text style={styles.header}&gt;Jornadas Disponíveis&lt;/Text&gt;
       &lt;FlatList
         data={journeys}
         renderItem={renderItem}
-        keyExtractor={<span class="fstat-no" title="function not covered" >(i</span>tem) =&gt; <span class="cstat-no" title="statement not covered" >item.id}</span>
+        keyExtractor={(item) =&gt; item.id}
       /&gt;
     &lt;/View&gt;
   );
@@ -304,7 +304,7 @@ export default HomeScreen;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-06T12:24:33.042Z
+                at 2025-10-06T16:54:41.485Z
             </div>
         <script src="../prettify.js"></script>
         <script>

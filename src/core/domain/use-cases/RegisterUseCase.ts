@@ -4,10 +4,19 @@ import { Name } from '../value-objects/Name';
 import { Email } from '../value-objects/Email';
 import { Password } from '../value-objects/Password';
 
+export interface RegisterParams {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export class RegisterUseCase {
   constructor(private authRepository: AuthRepository) {}
 
-  async execute(name: Name, email: Email, password: Password): Promise<User> {
+  async execute(params: RegisterParams): Promise<User> {
+    const name = Name.create(params.name);
+    const email = Email.create(params.email);
+    const password = Password.create(params.password);
     return this.authRepository.register(name, email, password);
   }
 }
