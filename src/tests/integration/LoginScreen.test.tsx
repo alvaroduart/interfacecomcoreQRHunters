@@ -111,7 +111,7 @@ describe('LoginScreen Integration Tests', () => {
     );
   };
 
-  // Test case 1: Successful login
+    // Test case 1: Successful login
   it('should login successfully with valid credentials', async () => {
     // Create a test user in the repository
     await createTestUser();

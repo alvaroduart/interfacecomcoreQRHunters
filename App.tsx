@@ -25,7 +25,6 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
-}
 
 const styles = StyleSheet.create({
   container: {
