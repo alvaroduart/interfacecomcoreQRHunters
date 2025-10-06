@@ -1,33 +1,25 @@
-import { AuthRepositoryMock } from '../infra/repositories/AuthRepositoryMock';
+import { AuthRepository } from '../domain/repositories/AuthRepository';
+import { ChangePasswordUseCase } from '../domain/use-cases/ChangePasswordUseCase';
+import { DeleteAccountUseCase } from '../domain/use-cases/DeleteAccountUseCase';
 import { LoginUseCase } from '../domain/use-cases/LoginUseCase';
 import { RegisterUseCase } from '../domain/use-cases/RegisterUseCase';
 import { UpdateProfileUseCase } from '../domain/use-cases/UpdateProfileUseCase';
-import { ChangePasswordUseCase } from '../domain/use-cases/ChangePasswordUseCase';
-import { DeleteAccountUseCase } from '../domain/use-cases/DeleteAccountUseCase';
+import { AuthRepositoryMock } from '../infra/repositories/AuthRepositoryMock';
 
-export class AuthFactory {
-  private static authRepository = AuthRepositoryMock.getInstance();
+export function makeAuthUseCases() {
+  const authRepository: AuthRepository = AuthRepositoryMock.getInstance();
 
-  static createLoginUseCase(): LoginUseCase {
-    return new LoginUseCase(AuthFactory.authRepository);
-  }
+  const changePasswordUseCase = new ChangePasswordUseCase(authRepository);
+  const deleteAccountUseCase = new DeleteAccountUseCase(authRepository);
+  const loginUseCase = new LoginUseCase(authRepository);
+  const registerUseCase = new RegisterUseCase(authRepository);
+  const updateProfileUseCase = new UpdateProfileUseCase(authRepository);
 
-  static createRegisterUseCase(): RegisterUseCase {
-    return new RegisterUseCase(AuthFactory.authRepository);
-  }
-
-  static createUpdateProfileUseCase(): UpdateProfileUseCase {
-    return new UpdateProfileUseCase(AuthFactory.authRepository);
-  }
-
-  static createChangePasswordUseCase(): ChangePasswordUseCase {
-    return new ChangePasswordUseCase(AuthFactory.authRepository);
-  }
-
-  static createDeleteAccountUseCase(): DeleteAccountUseCase {
-    return new DeleteAccountUseCase(AuthFactory.authRepository);
-  }
+  return {
+    changePasswordUseCase,
+    deleteAccountUseCase,
+    loginUseCase,
+    registerUseCase,
+    updateProfileUseCase,
+  };
 }
-
-
-

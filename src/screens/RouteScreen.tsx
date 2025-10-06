@@ -9,13 +9,36 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation, DrawerActions, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import theme from '../theme/theme';
 
+import { makeJourneyUseCases } from '../core/factories';
+import { Journey } from '../core/domain/entities/Journey';
+import { useState, useEffect } from 'react';
+
+type RouteScreenRouteProp = RouteProp<RootStackParamList, 'Route'>;
+
 const RouteScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const route = useRoute<RouteScreenRouteProp>();
+  const [journey, setJourney] = useState<Journey | null>(null);
+
+  const journeyId = route.params?.journeyId;
+
+  useEffect(() => {
+    const fetchJourney = async () => {
+      if (!journeyId) return;
+      const { getJourneyUseCase } = makeJourneyUseCases();
+      const journeyData = await getJourneyUseCase.execute({ journeyId });
+      if (journeyData) {
+        setJourney(journeyData);
+      }
+    };
+
+    fetchJourney();
+  }, [journeyId]);
   
   const openDrawer = () => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -37,7 +60,7 @@ const RouteScreen = () => {
             <Ionicons name="menu" size={28} color="#fff" />
           </Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Percurso</Text>
+        <Text style={styles.headerTitle}>{journey ? journey.name : 'Percurso'}</Text>
         <View style={{width: 40}} /> {/* Espaço para manter o cabeçalho centralizado */}
       </View>
       
@@ -45,15 +68,9 @@ const RouteScreen = () => {
       <View style={styles.mapContainer}>
         {/* Aqui usaríamos um componente de mapa real como MapView do react-native-maps */}
         <View style={styles.mockMap}>
-          {/* Pontos de controle no percurso */}
-          <View style={styles.routePoint} />
-          <View style={[styles.routePoint, { top: '20%', left: '25%' }]} />
-          <View style={[styles.routePoint, { top: '30%', left: '25%' }]} />
-          <View style={[styles.routePoint, { top: '40%', left: '25%' }]} />
-          <View style={[styles.routePoint, { top: '50%', left: '25%' }]} />
-          <View style={[styles.routePoint, { top: '60%', left: '25%' }]} />
-          <View style={[styles.routePoint, { top: '70%', left: '25%' }]} />
-          <View style={[styles.routePoint, { top: '80%', left: '25%' }]} />
+          {journey && journey.points.map((point, index) => (
+            <View key={point.id} style={[styles.routePoint, { top: `${10 + index * 10}%`, left: '25%' }]} />
+          ))}
           
           {/* Ponto de chegada */}
           <View style={[styles.destinationPoint]} />
@@ -66,7 +83,7 @@ const RouteScreen = () => {
         <View style={styles.routeInfoContainer}>
           <Text style={styles.routeInfoText}>Tempo: 42:15</Text>
           <Text style={styles.routeInfoText}>Distância: 3.5 km</Text>
-          <Text style={styles.routeInfoText}>Controles: 5/8</Text>
+          {journey && <Text style={styles.routeInfoText}>Controles: {journey.points.filter(p => p.isCompleted).length}/{journey.points.length}</Text>}
         </View>
         
         {/* Ponto de chegada */}

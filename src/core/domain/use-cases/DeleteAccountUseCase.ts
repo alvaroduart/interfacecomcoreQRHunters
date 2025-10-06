@@ -1,10 +1,10 @@
 import { AuthRepository } from '../repositories/AuthRepository';
 
 export class DeleteAccountUseCase {
-  constructor(private authRepository: AuthRepository) {}
+  constructor(private readonly authRepository: AuthRepository) {}
 
-  async execute(userId: string): Promise<boolean> {
+  async execute(params: { userId: string }): Promise<boolean> {
+    const { userId } = params;
     return this.authRepository.deleteAccount(userId);
   }
 }
-

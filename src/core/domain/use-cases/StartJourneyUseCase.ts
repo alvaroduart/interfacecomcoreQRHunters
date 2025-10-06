@@ -2,10 +2,10 @@ import { JourneyRepository } from '../repositories/JourneyRepository';
 import { Journey } from '../entities/Journey';
 
 export class StartJourneyUseCase {
-  constructor(private journeyRepository: JourneyRepository) {}
+  constructor(private readonly journeyRepository: JourneyRepository) {}
 
-  async execute(journeyId: string): Promise<Journey> {
+  async execute(params: { journeyId: string }): Promise<Journey> {
+    const { journeyId } = params;
     return this.journeyRepository.startJourney(journeyId);
   }
 }
-

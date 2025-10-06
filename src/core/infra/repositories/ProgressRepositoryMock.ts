@@ -3,19 +3,13 @@ import { QRCode } from '../../domain/entities/QRCode';
 import { Code } from '../../domain/value-objects/Code';
 import { Location } from '../../domain/value-objects/Location';
 
+interface UserProgress {
+  userId: string;
+  qrCodeId: string;
+}
+
 export class ProgressRepositoryMock implements ProgressRepository {
-
   private static instance: ProgressRepositoryMock;
-
-  private constructor() {}
-
-  public static getInstance(): ProgressRepositoryMock {
-    if (!ProgressRepositoryMock.instance) {
-      ProgressRepositoryMock.instance = new ProgressRepositoryMock();
-    }
-    return ProgressRepositoryMock.instance;
-  }
-
   private qrcodes: QRCode[] = [
     QRCode.create(
       'qr1',
@@ -43,10 +37,26 @@ export class ProgressRepositoryMock implements ProgressRepository {
     ),
   ];
 
+  private userProgress: UserProgress[] = [
+    { userId: '1', qrCodeId: 'qr1' },
+    { userId: '1', qrCodeId: 'qr2' },
+    { userId: '2', qrCodeId: 'qr3' },
+  ];
+
+  private constructor() {}
+
+  public static getInstance(): ProgressRepositoryMock {
+    if (!ProgressRepositoryMock.instance) {
+      ProgressRepositoryMock.instance = new ProgressRepositoryMock();
+    }
+    return ProgressRepositoryMock.instance;
+  }
+
   async getUserProgress(userId: string): Promise<QRCode[]> {
-    console.log(`Mock Get User Progress for userId: ${userId}`);
-    // Retorna todos os QR Codes mockados para simplificar
-    return Promise.resolve(this.qrcodes);
+    const userScannedIds = this.userProgress
+      .filter(up => up.userId === userId)
+      .map(up => up.qrCodeId);
+
+    return this.qrcodes.filter(qr => userScannedIds.includes(qr.id));
   }
 }
-

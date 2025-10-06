@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -13,79 +13,47 @@ import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import theme from '../theme/theme';
-
-interface CheckpointItem {
-  id: string;
-  name: string;
-  description: string;
-  status: 'success' | 'error' | 'pending';
-  location?: string;
-  timestamp?: string;
-}
+import { makeProgressUseCases } from '../core/factories';
+import { QRCode } from '../core/domain/entities/QRCode';
 
 const ProgressScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  
-  // Dados simulados dos pontos de controle escaneados
-  const checkpoints: CheckpointItem[] = [
-    {
-      id: '1',
-      name: 'Ponto de Controle 1',
-      description: 'Biblioteca do CEFET-MG',
-      status: 'success',
-      location: '21° 33\' 03" S, 45° 25\' 48"',
-      timestamp: '10:15:23'
-    },
-    {
-      id: '2',
-      name: 'Ponto de Controle 2',
-      description: 'Entrada do Ginásio',
-      status: 'success',
-      location: '21° 33\' 12" S, 45° 25\' 52"',
-      timestamp: '10:22:45'
-    },
-    {
-      id: '3',
-      name: 'Ponto de Controle 3',
-      description: 'Cantina Principal',
-      status: 'error',
-      location: '21° 33\' 18" S, 45° 25\' 41"',
-      timestamp: '10:31:12'
-    },
-    {
-      id: '4',
-      name: 'Ponto de Controle 4',
-      description: 'Laboratório de Informática',
-      status: 'success',
-      location: '21° 33\' 07" S, 45° 25\' 39"',
-      timestamp: '10:42:38'
-    }
-  ];
+  const [checkpoints, setCheckpoints] = useState<QRCode[]>([]);
+
+  useEffect(() => {
+    const fetchProgress = async () => {
+      const { getUserProgressUseCase } = makeProgressUseCases();
+      const progress = await getUserProgressUseCase.execute({ userId: '1' });
+      setCheckpoints(progress);
+    };
+
+    fetchProgress();
+  }, []);
   
   const openDrawer = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
   
-  const renderCheckpointItem = (item: CheckpointItem) => {
+  const renderCheckpointItem = (item: QRCode) => {
     return (
       <View key={item.id} style={styles.checkpointItem}>
         <View style={styles.checkpointInfo}>
-          <Text style={styles.checkpointName}>{item.name}</Text>
+          <Text style={styles.checkpointName}>{item.location.value}</Text>
           <Text style={styles.checkpointDescription}>{item.description}</Text>
           
           <Text 
             style={[
               styles.checkpointStatus, 
-              item.status === 'success' ? styles.successText : styles.errorText
+              item.status === 'acertou' ? styles.successText : styles.errorText
             ]}
           >
-            {item.status === 'success' ? 'Validado' : 'Inválido'}
+            {item.status === 'acertou' ? 'Validado' : 'Inválido'}
           </Text>
         </View>
         
         <View style={styles.checkpointDetails}>
-          <Text style={styles.locationText}>{item.location}</Text>
-          {item.timestamp && <Text style={styles.timeText}>{item.timestamp}</Text>}
+          <Text style={styles.locationText}>{item.location.value}</Text>
+          {item.timestamp && <Text style={styles.timeText}>{item.timestamp.toLocaleTimeString()}</Text>}
         </View>
       </View>
     );

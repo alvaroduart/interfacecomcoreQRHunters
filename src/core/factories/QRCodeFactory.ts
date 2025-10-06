@@ -1,16 +1,16 @@
-import { QRCodeRepositoryMock } from '../infra/repositories/QRCodeRepositoryMock';
-import { ScanQRCodeUseCase } from '../domain/use-cases/ScanQRCodeUseCase';
+import { QRCodeRepository } from '../domain/repositories/QRCodeRepository';
 import { GetQRCodeDetailsUseCase } from '../domain/use-cases/GetQRCodeDetailsUseCase';
+import { ScanQRCodeUseCase } from '../domain/use-cases/ScanQRCodeUseCase';
+import { QRCodeRepositoryMock } from '../infra/repositories/QRCodeRepositoryMock';
 
-export class QRCodeFactory {
-  private static qrCodeRepository = QRCodeRepositoryMock.getInstance();
+export function makeQRCodeUseCases() {
+  const qrCodeRepository: QRCodeRepository = QRCodeRepositoryMock.getInstance();
 
-  static createScanQRCodeUseCase(): ScanQRCodeUseCase {
-    return new ScanQRCodeUseCase(QRCodeFactory.qrCodeRepository);
-  }
+  const getQRCodeDetailsUseCase = new GetQRCodeDetailsUseCase(qrCodeRepository);
+  const scanQRCodeUseCase = new ScanQRCodeUseCase(qrCodeRepository);
 
-  static createGetQRCodeDetailsUseCase(): GetQRCodeDetailsUseCase {
-    return new GetQRCodeDetailsUseCase(QRCodeFactory.qrCodeRepository);
-  }
+  return {
+    getQRCodeDetailsUseCase,
+    scanQRCodeUseCase,
+  };
 }
-

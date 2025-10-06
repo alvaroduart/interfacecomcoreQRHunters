@@ -5,18 +5,7 @@ import { Latitude } from '../../domain/value-objects/Latitude';
 import { Longitude } from '../../domain/value-objects/Longitude';
 
 export class JourneyRepositoryMock implements JourneyRepository {
-
   private static instance: JourneyRepositoryMock;
-
-  private constructor() {}
-
-  public static getInstance(): JourneyRepositoryMock {
-    if (!JourneyRepositoryMock.instance) {
-      JourneyRepositoryMock.instance = new JourneyRepositoryMock();
-    }
-    return JourneyRepositoryMock.instance;
-  }
-
   private journeys: Journey[] = [
     Journey.create(
       'journey1',
@@ -43,92 +32,100 @@ export class JourneyRepositoryMock implements JourneyRepository {
     ),
   ];
 
+  private constructor() {}
+
+  public static getInstance(): JourneyRepositoryMock {
+    if (!JourneyRepositoryMock.instance) {
+      JourneyRepositoryMock.instance = new JourneyRepositoryMock();
+    }
+    return JourneyRepositoryMock.instance;
+  }
+
   async getJourney(journeyId: string): Promise<Journey | undefined> {
-    console.log(`Mock Get Journey: ${journeyId}`);
     return this.journeys.find(j => j.id === journeyId);
   }
 
+  async getAllJourneys(): Promise<Journey[]> {
+    return this.journeys;
+  }
+
   async startJourney(journeyId: string): Promise<Journey> {
-    console.log(`Mock Start Journey: ${journeyId}`);
-    const journey = this.journeys.find(j => j.id === journeyId);
-    if (!journey) throw new Error('Journey not found');
-    const updatedJourney = journey.updateCurrentPointIndex(0);
+    const journeyIndex = this.journeys.findIndex(j => j.id === journeyId);
+    if (journeyIndex === -1) {
+      throw new Error('Journey not found');
+    }
+    const journey = this.journeys[journeyIndex];
+    // Assuming starting a journey means resetting progress
+    const updatedJourney = Journey.create(
+      journey.id,
+      journey.name,
+      journey.points.map(p => JourneyPoint.create(p.id, p.name, p.latitude, p.longitude, false, p.description)),
+      0,
+      false,
+      journey.description
+    );
+    this.journeys[journeyIndex] = updatedJourney;
     return updatedJourney;
   }
 
   async completeJourneyPoint(journeyId: string, pointId: string): Promise<Journey> {
-    console.log(`Mock Complete Journey Point: ${journeyId}, ${pointId}`);
-    let journey = this.journeys.find(j => j.id === journeyId);
-    if (!journey) throw new Error('Journey not found');
+    const journeyIndex = this.journeys.findIndex(j => j.id === journeyId);
+    if (journeyIndex === -1) {
+      throw new Error('Journey not found');
+    }
+    let journey = this.journeys[journeyIndex];
 
     const pointIndex = journey.points.findIndex(p => p.id === pointId);
-    if (pointIndex === -1) throw new Error('Journey point not found');
+    if (pointIndex === -1) {
+      throw new Error('Journey point not found');
+    }
 
-    const updatedPoints = [...journey.points];
-    updatedPoints[pointIndex] = JourneyPoint.create(
-      updatedPoints[pointIndex].id,
-      updatedPoints[pointIndex].name,
-      updatedPoints[pointIndex].latitude,
-      updatedPoints[pointIndex].longitude,
-      true,
-      updatedPoints[pointIndex].description
-    );
+    const updatedPoints = journey.points.map((point) => {
+      if (point.id === pointId) {
+        return JourneyPoint.create(point.id, point.name, point.latitude, point.longitude, true, point.description);
+      }
+      return point;
+    });
 
     let newCurrentPointIndex = journey.currentPointIndex;
     if (pointIndex === journey.currentPointIndex) {
       newCurrentPointIndex++;
     }
+    
+    const allPointsCompleted = updatedPoints.every(p => p.isCompleted);
 
-    let isCompleted = journey.isCompleted;
-    if (newCurrentPointIndex >= updatedPoints.length) {
-      isCompleted = true;
-    }
-
-    journey = Journey.create(
+    const updatedJourney = Journey.create(
       journey.id,
       journey.name,
       updatedPoints,
       newCurrentPointIndex,
-      isCompleted,
+      allPointsCompleted,
       journey.description
     );
 
-    // Atualizar a jornada na lista de jornadas mockadas
-    const journeyIndex = this.journeys.findIndex(j => j.id === journeyId);
-    if (journeyIndex !== -1) {
-      this.journeys[journeyIndex] = journey;
-    }
-
-    return journey;
+    this.journeys[journeyIndex] = updatedJourney;
+    return updatedJourney;
   }
 
   async finishJourney(journeyId: string): Promise<Journey> {
-    console.log(`Mock Finish Journey: ${journeyId}`);
-    let journey = this.journeys.find(j => j.id === journeyId);
-    if (!journey) throw new Error('Journey not found');
+    const journeyIndex = this.journeys.findIndex(j => j.id === journeyId);
+    if (journeyIndex === -1) {
+      throw new Error('Journey not found');
+    }
+    const journey = this.journeys[journeyIndex];
 
     const updatedPoints = journey.points.map(p => JourneyPoint.create(p.id, p.name, p.latitude, p.longitude, true, p.description));
-    journey = Journey.create(
+    
+    const updatedJourney = Journey.create(
       journey.id,
       journey.name,
       updatedPoints,
-      updatedPoints.length,
+      journey.points.length,
       true,
       journey.description
     );
 
-    // Atualizar a jornada na lista de jornadas mockadas
-    const journeyIndex = this.journeys.findIndex(j => j.id === journeyId);
-    if (journeyIndex !== -1) {
-      this.journeys[journeyIndex] = journey;
-    }
-
-    return journey;
-  }
-
-  async getAllJourneys(): Promise<Journey[]> {
-    console.log('Mock Get All Journeys');
-    return this.journeys;
+    this.journeys[journeyIndex] = updatedJourney;
+    return updatedJourney;
   }
 }
-

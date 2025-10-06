@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   Image, 
   TouchableOpacity, 
-  SafeAreaView
+  SafeAreaView,
+  TextInput,
+  Alert
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
@@ -13,17 +15,31 @@ import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import theme from '../theme/theme';
+import { makeAuthUseCases } from '../core/factories';
+import { useAuth } from '../context/AuthContext';
+import { Password } from '../core/domain/value-objects/Password';
 
 const ProfileScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { user } = useAuth();
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   
   const openDrawer = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
   
-  // Esta função seria conectada a uma API em um aplicativo real
-  const handleUpdatePassword = () => {
-    // Lógica para atualizar senha
+  const handleUpdatePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Erro', 'As senhas não coincidem');
+      return;
+    }
+
+    if (user) {
+      const { changePasswordUseCase } = makeAuthUseCases();
+      await changePasswordUseCase.execute({ userId: user.id, oldPassword: user.password, newPassword: Password.create(newPassword) });
+      Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
+    }
   };
 
   return (
@@ -54,18 +70,25 @@ const ProfileScreen = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.userName}>Nome do Usuário</Text>
+        <Text style={styles.userName}>{user ? user.name.value : 'Nome do Usuário'}</Text>
       </View>
       
       {/* Área de configurações */}
       <View style={styles.settingsContainer}>
-        <TouchableOpacity style={styles.settingButton}>
-          <Text style={styles.settingButtonText}>Alterar senha:</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.settingButton}>
-          <Text style={styles.settingButtonText}>Confirmar senha:</Text>
-        </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="Nova senha"
+          secureTextEntry
+          value={newPassword}
+          onChangeText={setNewPassword}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirmar nova senha"
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
         
         <TouchableOpacity 
           style={styles.updateButton}
@@ -174,15 +197,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  backgroundCircle: {
-    position: 'absolute',
-    bottom: -300,
-    left: -150,
-    width: 700,
-    height: 700,
-    borderRadius: 350,
-    backgroundColor: '#0054a6',
-    zIndex: 1,
+  input: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+    fontSize: 16,
   },
 });
 

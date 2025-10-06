@@ -1,31 +1,25 @@
-import { JourneyRepositoryMock } from '../infra/repositories/JourneyRepositoryMock';
-import { GetJourneyUseCase } from '../domain/use-cases/GetJourneyUseCase';
-import { StartJourneyUseCase } from '../domain/use-cases/StartJourneyUseCase';
+import { JourneyRepository } from '../domain/repositories/JourneyRepository';
 import { CompleteJourneyPointUseCase } from '../domain/use-cases/CompleteJourneyPointUseCase';
 import { FinishJourneyUseCase } from '../domain/use-cases/FinishJourneyUseCase';
 import { GetAllJourneysUseCase } from '../domain/use-cases/GetAllJourneysUseCase';
+import { GetJourneyUseCase } from '../domain/use-cases/GetJourneyUseCase';
+import { StartJourneyUseCase } from '../domain/use-cases/StartJourneyUseCase';
+import { JourneyRepositoryMock } from '../infra/repositories/JourneyRepositoryMock';
 
-export class JourneyFactory {
-  private static journeyRepository = JourneyRepositoryMock.getInstance();
+export function makeJourneyUseCases() {
+  const journeyRepository: JourneyRepository = JourneyRepositoryMock.getInstance();
 
-  static createGetJourneyUseCase(): GetJourneyUseCase {
-    return new GetJourneyUseCase(JourneyFactory.journeyRepository);
-  }
+  const completeJourneyPointUseCase = new CompleteJourneyPointUseCase(journeyRepository);
+  const finishJourneyUseCase = new FinishJourneyUseCase(journeyRepository);
+  const getAllJourneysUseCase = new GetAllJourneysUseCase(journeyRepository);
+  const getJourneyUseCase = new GetJourneyUseCase(journeyRepository);
+  const startJourneyUseCase = new StartJourneyUseCase(journeyRepository);
 
-  static createStartJourneyUseCase(): StartJourneyUseCase {
-    return new StartJourneyUseCase(JourneyFactory.journeyRepository);
-  }
-
-  static createCompleteJourneyPointUseCase(): CompleteJourneyPointUseCase {
-    return new CompleteJourneyPointUseCase(JourneyFactory.journeyRepository);
-  }
-
-  static createFinishJourneyUseCase(): FinishJourneyUseCase {
-    return new FinishJourneyUseCase(JourneyFactory.journeyRepository);
-  }
-
-  static createGetAllJourneysUseCase(): GetAllJourneysUseCase {
-    return new GetAllJourneysUseCase(JourneyFactory.journeyRepository);
-  }
+  return {
+    completeJourneyPointUseCase,
+    finishJourneyUseCase,
+    getAllJourneysUseCase,
+    getJourneyUseCase,
+    startJourneyUseCase,
+  };
 }
-

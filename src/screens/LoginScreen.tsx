@@ -17,29 +17,34 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
+import { useAuth } from '../context/AuthContext';
+import { Email } from '../core/domain/value-objects/Email';
+import { Password } from '../core/domain/value-objects/Password';
+
 const LoginScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const [username, setUsername] = useState('');
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Lógica de login será implementada aqui
-    console.log('Login attempt:', username, password);
-    
-    // Em uma aplicação real, faríamos uma validação com servidor
-    // Por agora, apenas verificamos se os campos estão preenchidos
-    if (username && password) {
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      return;
+    }
+
+    try {
+      await login(Email.create(email), Password.create(password));
       navigation.reset({
         index: 0,
         routes: [{ name: 'MainApp' }],
       });
-    } else {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+    } catch (error) {
+      Alert.alert('Erro', error.message);
     }
   };
 
   const handleRegister = () => {
-    // Usar o nome exato da rota como está definido em RootStackParamList
     navigation.navigate('Register');
   };
 
@@ -62,11 +67,12 @@ const LoginScreen = () => {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Usuário:"
+            placeholder="Email:"
             placeholderTextColor="#fff"
-            value={username}
-            onChangeText={setUsername}
+            value={email}
+            onChangeText={setEmail}
             autoCapitalize="none"
+            keyboardType="email-address"
           />
           
           <TextInput

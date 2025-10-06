@@ -4,10 +4,18 @@ import { Name } from '../value-objects/Name';
 import { Email } from '../value-objects/Email';
 
 export class UpdateProfileUseCase {
-  constructor(private authRepository: AuthRepository) {}
+  constructor(private readonly authRepository: AuthRepository) {}
 
-  async execute(userId: string, username: Name, email: Email): Promise<User> {
-    return this.authRepository.updateProfile(userId, username, email);
+  async execute(params: {
+    userId: string;
+    name: string;
+    email: string;
+  }): Promise<User> {
+    const { userId, name, email } = params;
+
+    const nameVO = Name.create(name);
+    const emailVO = Email.create(email);
+
+    return this.authRepository.updateProfile(userId, nameVO, emailVO);
   }
 }
-

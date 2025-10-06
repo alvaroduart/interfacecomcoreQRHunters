@@ -5,7 +5,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { useAuth } from '../context/AuthContext';
+
 // Screens
+import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -23,23 +26,30 @@ import theme from '../theme/theme';
 
 // Tipagem de parâmetros para as rotas
 export type RootStackParamList = {
+  SplashScreen: undefined;
   Auth: undefined;
   Login: undefined;
   Register: undefined;
-  MainApp: {
-    screen?: 'Scanner' | 'Progress' | 'Route';
-  };
+  MainApp: { screen?: string, params?: { journeyId?: string } };
   Home: undefined;
   Scanner: undefined;
   Profile: undefined;
   History: undefined;
   Progress: undefined;
-  Route: undefined;
+  Route: { journeyId: string };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
+const Auth = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<RootStackParamList>();
+
+const AuthStack = () => (
+  <Auth.Navigator screenOptions={{ headerShown: false }}>
+    <Auth.Screen name="Login" component={LoginScreen} />
+    <Auth.Screen name="Register" component={RegisterScreen} />
+  </Auth.Navigator>
+);
 
 // Tab Navigator para as abas na parte inferior
 const TabNavigator = ({ route }: any) => {
@@ -99,6 +109,7 @@ const DrawerNavigator = () => {
         },
       }}
     >
+      <Drawer.Screen name="Home" component={HomeScreen} />
       <Drawer.Screen name="MainApp" component={TabNavigator} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
     </Drawer.Navigator>
@@ -107,16 +118,20 @@ const DrawerNavigator = () => {
 
 // Autenticação e raíz da navegação
 const AppNavigator = () => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <SplashScreen />;
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen 
-          name="MainApp" 
-          component={DrawerNavigator} 
-          options={{ headerShown: false }}
-        />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          <Stack.Screen name="MainApp" component={DrawerNavigator} />
+        ) : (
+          <Stack.Screen name="Auth" component={AuthStack} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

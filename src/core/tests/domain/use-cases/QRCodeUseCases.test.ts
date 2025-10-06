@@ -1,30 +1,43 @@
-import { QRCodeFactory } from '@factories/QRCodeFactory';
-import { Code } from '@domain/value-objects/Code';
-import { Location } from '@domain/value-objects/Location';
+import { makeQRCodeUseCases } from '../../../factories/QRCodeFactory';
 
-describe('QRCode Use Cases', () => {
-  it('should scan a QR Code successfully', async () => {
-    const scanQRCodeUseCase = QRCodeFactory.createScanQRCodeUseCase();
-    const code = Code.create('newCode123');
-    const location = Location.create('Local Teste');
-    const qrCode = await scanQRCodeUseCase.execute(code, location);
+describe('Casos de Uso de QRCode', () => {
+  it('deve escanear um QRCode conhecido com sucesso', async () => {
+    const { scanQRCodeUseCase } = makeQRCodeUseCases();
+    const params = {
+      code: 'code123',
+      location: 'Local Teste',
+    };
+    const qrCode = await scanQRCodeUseCase.execute(params);
     expect(qrCode).toBeDefined();
-    expect(qrCode.code.value).toBe('newCode123');
-    expect(qrCode.status).toBe('errou'); // Based on mock logic
+    expect(qrCode.code.value).toBe('code123');
+    expect(qrCode.status).toBe('acertou');
   });
 
-  it('should get QR Code details successfully', async () => {
-    const getQRCodeDetailsUseCase = QRCodeFactory.createGetQRCodeDetailsUseCase();
-    const qrCode = await getQRCodeDetailsUseCase.execute('qr1');
+  it('deve escanear um QRCode desconhecido e retornar status de erro', async () => {
+    const { scanQRCodeUseCase } = makeQRCodeUseCases();
+    const params = {
+      code: 'newCode123',
+      location: 'Local Teste',
+    };
+    const qrCode = await scanQRCodeUseCase.execute(params);
+    expect(qrCode).toBeDefined();
+    expect(qrCode.code.value).toBe('newCode123');
+    expect(qrCode.status).toBe('errou');
+  });
+
+  it('deve obter os detalhes do QRCode com sucesso', async () => {
+    const { getQRCodeDetailsUseCase } = makeQRCodeUseCases();
+    const params = { id: 'qr1' };
+    const qrCode = await getQRCodeDetailsUseCase.execute(params);
     expect(qrCode).toBeDefined();
     expect(qrCode?.code.value).toBe('code123');
     expect(qrCode?.location.value).toBe('Biblioteca do CEFET-MG');
   });
 
-  it('should return undefined for a non-existent QR Code', async () => {
-    const getQRCodeDetailsUseCase = QRCodeFactory.createGetQRCodeDetailsUseCase();
-    const qrCode = await getQRCodeDetailsUseCase.execute('nonExistentId');
+  it('deve retornar indefinido para um QRCode inexistente', async () => {
+    const { getQRCodeDetailsUseCase } = makeQRCodeUseCases();
+    const params = { id: 'nonExistentId' };
+    const qrCode = await getQRCodeDetailsUseCase.execute(params);
     expect(qrCode).toBeUndefined();
   });
 });
-

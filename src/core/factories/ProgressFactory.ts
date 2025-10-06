@@ -1,11 +1,13 @@
-import { ProgressRepositoryMock } from '../infra/repositories/ProgressRepositoryMock';
+import { ProgressRepository } from '../domain/repositories/ProgressRepository';
 import { GetUserProgressUseCase } from '../domain/use-cases/GetUserProgressUseCase';
+import { ProgressRepositoryMock } from '../infra/repositories/ProgressRepositoryMock';
 
-export class ProgressFactory {
-  private static progressRepository = ProgressRepositoryMock.getInstance();
+export function makeProgressUseCases() {
+  const progressRepository: ProgressRepository = ProgressRepositoryMock.getInstance();
 
-  static createGetUserProgressUseCase(): GetUserProgressUseCase {
-    return new GetUserProgressUseCase(ProgressFactory.progressRepository);
-  }
+  const getUserProgressUseCase = new GetUserProgressUseCase(progressRepository);
+
+  return {
+    getUserProgressUseCase,
+  };
 }
-

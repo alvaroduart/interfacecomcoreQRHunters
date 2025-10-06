@@ -7,8 +7,7 @@ import { Password } from '../value-objects/Password';
 export class RegisterUseCase {
   constructor(private authRepository: AuthRepository) {}
 
-  async execute(username: Name, email: Email, password: Password): Promise<User> {
-    return this.authRepository.register(username, email, password);
+  async execute(name: Name, email: Email, password: Password): Promise<User> {
+    return this.authRepository.register(name, email, password);
   }
 }
-

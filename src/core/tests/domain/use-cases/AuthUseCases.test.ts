@@ -1,65 +1,107 @@
-import { AuthFactory } from '@factories/AuthFactory';
-import { Name } from '@domain/value-objects/Name';
-import { Email } from '@domain/value-objects/Email';
-import { Password } from '@domain/value-objects/Password';
+import { makeAuthUseCases } from '../../../factories/AuthFactory';
+import { AuthRepositoryMock } from '@/core/infra/repositories/AuthRepositoryMock';
 
-describe('Auth Use Cases', () => {
-  it('should login a user successfully', async () => {
-    const loginUseCase = AuthFactory.createLoginUseCase();
-    const username = Name.create('test');
-    const password = Password.create('Password123!');
-    const user = await loginUseCase.execute(username, password);
-    expect(user).toBeDefined();
-    expect(user.name.value).toBe('test');
+describe('Casos de Uso de Autenticação', () => {
+  beforeEach(() => {
+    AuthRepositoryMock.getInstance().reset();
   });
-
-  it('should register a user successfully', async () => {
-    const registerUseCase = AuthFactory.createRegisterUseCase();
-    const username = Name.create('newUser');
-    const email = Email.create('new@example.com');
-    const password = Password.create('NewPassword123!');
-    const user = await registerUseCase.execute(username, email, password);
+  it('deve registrar um usuário com sucesso', async () => {
+    const { registerUseCase } = makeAuthUseCases();
+    const params = {
+      name: 'newUser',
+      email: 'new@example.com',
+      password: 'NewPassword123!',
+    };
+    const user = await registerUseCase.execute(params);
     expect(user).toBeDefined();
     expect(user.name.value).toBe('newUser');
     expect(user.email.value).toBe('new@example.com');
   });
 
-  it('should update a user profile successfully', async () => {
-    const updateProfileUseCase = AuthFactory.createUpdateProfileUseCase();
-    const updatedUsername = Name.create('updatedUser');
-    const updatedEmail = Email.create('updated@example.com');
-    const user = await updateProfileUseCase.execute('1', updatedUsername, updatedEmail);
+  it('deve lançar um erro ao registrar um usuário que já existe', async () => {
+    const { registerUseCase } = makeAuthUseCases();
+    const params = {
+      name: 'newUser',
+      email: 'new@example.com',
+      password: 'NewPassword123!',
+    };
+    await registerUseCase.execute(params);
+    await expect(registerUseCase.execute(params)).rejects.toThrow('User already exists');
+  });
+
+  it('deve logar um usuário com sucesso após o registro', async () => {
+    const { registerUseCase, loginUseCase } = makeAuthUseCases();
+    const registerParams = {
+      name: 'testuser',
+      email: 'test@example.com',
+      password: 'Password123!',
+    };
+    await registerUseCase.execute(registerParams);
+
+    const loginParams = {
+      name: 'testuser',
+      password: 'Password123!',
+    };
+    const user = await loginUseCase.execute(loginParams);
     expect(user).toBeDefined();
-    expect(user.name.value).toBe('updatedUser');
-    expect(user.email.value).toBe('updated@example.com');
+    expect(user.name.value).toBe('testuser');
   });
 
-  it('should change user password successfully', async () => {
-    const changePasswordUseCase = AuthFactory.createChangePasswordUseCase();
-    const oldPassword = Password.create('Password123!');
-    const newPassword = Password.create('NewStrongPassword123!');
-    const success = await changePasswordUseCase.execute('1', oldPassword, newPassword);
+  it('deve atualizar o perfil de um usuário com sucesso', async () => {
+    const { registerUseCase, updateProfileUseCase } = makeAuthUseCases();
+    const registerParams = {
+      name: 'testuser',
+      email: 'test@example.com',
+      password: 'Password123!',
+    };
+    const user = await registerUseCase.execute(registerParams);
+
+    const updateParams = {
+      userId: user.id,
+      name: 'updatedUser',
+      email: 'updated@example.com',
+    };
+    const updatedUser = await updateProfileUseCase.execute(updateParams);
+    expect(updatedUser).toBeDefined();
+    expect(updatedUser.name.value).toBe('updatedUser');
+    expect(updatedUser.email.value).toBe('updated@example.com');
+  });
+
+  it('deve alterar a senha do usuário com sucesso', async () => {
+    const { registerUseCase, changePasswordUseCase } = makeAuthUseCases();
+    const registerParams = {
+      name: 'testuser',
+      email: 'test@example.com',
+      password: 'Password123!',
+    };
+    const user = await registerUseCase.execute(registerParams);
+
+    const changePasswordParams = {
+      userId: user.id,
+      oldPassword: 'Password123!',
+      newPassword: 'NewStrongPassword123!',
+    };
+    const success = await changePasswordUseCase.execute(changePasswordParams);
     expect(success).toBe(true);
   });
 
-  it('should delete a user account successfully', async () => {
-    const deleteAccountUseCase = AuthFactory.createDeleteAccountUseCase();
-    const success = await deleteAccountUseCase.execute('1');
+  it('deve deletar a conta de um usuário com sucesso', async () => {
+    const { registerUseCase, deleteAccountUseCase, loginUseCase } = makeAuthUseCases();
+    const registerParams = {
+      name: 'testuser',
+      email: 'test@example.com',
+      password: 'Password123!',
+    };
+    const user = await registerUseCase.execute(registerParams);
+
+    const deleteParams = { userId: user.id };
+    const success = await deleteAccountUseCase.execute(deleteParams);
     expect(success).toBe(true);
-  });
 
-  it('should throw error for invalid login credentials', async () => {
-    const loginUseCase = AuthFactory.createLoginUseCase();
-    const username = Name.create('wrong');
-    const password = Password.create('WrongPassword123!');
-    await expect(loginUseCase.execute(username, password)).rejects.toThrow('Invalid credentials');
-  });
-
-  it('should throw error for invalid old password during password change', async () => {
-    const changePasswordUseCase = AuthFactory.createChangePasswordUseCase();
-    const oldPassword = Password.create('WrongPassword123!');
-    const newPassword = Password.create('NewStrongPassword123!');
-    await expect(changePasswordUseCase.execute('1', oldPassword, newPassword)).rejects.toThrow('Invalid old password');
+    const loginParams = {
+      name: 'testuser',
+      password: 'Password123!',
+    };
+    await expect(loginUseCase.execute(loginParams)).rejects.toThrow('Invalid credentials');
   });
 });
-

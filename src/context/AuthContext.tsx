@@ -1,0 +1,45 @@
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { User } from '../core/domain/entities/User';
+import { makeAuthUseCases } from '../core/factories';
+import { Name } from '../core/domain/value-objects/Name';
+import { Email } from '../core/domain/value-objects/Email';
+import { Password } from '../core/domain/value-objects/Password';
+
+interface AuthContextData {
+  user: User | null;
+  login: (email: Email, password: Password) => Promise<User>;
+  register: (name: Name, email: Email, password: Password) => Promise<User>;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+
+export const AuthProvider: React.FC<{children: ReactNode, initialUser?: User | null}> = ({ children, initialUser = null }) => {
+  const [user, setUser] = useState<User | null>(initialUser);
+  const { loginUseCase, registerUseCase } = makeAuthUseCases();
+
+  const login = async (email: Email, password: Password) => {
+    const loggedUser = await loginUseCase.execute(email, password);
+    setUser(loggedUser);
+    return loggedUser;
+  };
+
+  const register = async (name: Name, email: Email, password: Password) => {
+    const newUser = await registerUseCase.execute(name, email, password);
+    return newUser;
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  return useContext(AuthContext);
+};

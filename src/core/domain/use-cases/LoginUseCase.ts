@@ -4,10 +4,17 @@ import { Name } from '../value-objects/Name';
 import { Password } from '../value-objects/Password';
 
 export class LoginUseCase {
-  constructor(private authRepository: AuthRepository) {}
+  constructor(private readonly authRepository: AuthRepository) {}
 
-  async execute(username: Name, password: Password): Promise<User> {
-    return this.authRepository.login(username, password);
+  async execute(params: {
+    name: string;
+    password: string;
+  }): Promise<User> {
+    const { name, password } = params;
+
+    const nameVO = Name.create(name);
+    const passwordVO = Password.create(password);
+
+    return this.authRepository.login(nameVO, passwordVO);
   }
 }
-

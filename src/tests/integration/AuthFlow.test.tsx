@@ -1,0 +1,140 @@
+import React from 'react';
+import { View, Text } from 'react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import LoginScreen from '../../screens/LoginScreen';
+import RegisterScreen from '../../screens/RegisterScreen';
+import { AuthProvider } from '../../context/AuthContext';
+import { AuthRepositoryMock } from '../../core/infra/repositories/AuthRepositoryMock';
+import { Email } from '../../core/domain/value-objects/Email';
+
+// Mocking react-native-gesture-handler
+jest.mock('react-native-gesture-handler', () => {
+  const View = require('react-native/Libraries/Components/View/View');
+  return {
+    Swipeable: View,
+    DrawerLayout: View,
+    State: {},
+    ScrollView: View,
+    Slider: View,
+    Switch: View,
+    TextInput: View,
+    ToolbarAndroid: View,
+    DrawerLayoutAndroid: View,
+    WebView: View,
+    NativeViewGestureHandler: View,
+    TapGestureHandler: View,
+    FlingGestureHandler: View,
+    ForceTouchGestureHandler: View,
+    LongPressGestureHandler: View,
+    PanGestureHandler: View,
+    PinchGestureHandler: View,
+    RotationGestureHandler: View,
+    /* Buttons */
+    RawButton: View,
+    BaseButton: View,
+    RectButton: View,
+    BorderlessButton: View,
+    /* Other */
+    FlatList: View,
+    gestureHandlerRootHOC: jest.fn(),
+    Directions: {},
+  };
+});
+
+// Mocking reanimated
+jest.mock('react-native-reanimated', () => {
+    const Reanimated = require('react-native-reanimated/mock');
+  
+    // The mock for `call` immediately calls the callback which is incorrect
+    // So we override it with a no-op
+    Reanimated.default.call = () => {};
+  
+    return Reanimated;
+});
+
+import { Alert } from 'react-native';
+
+const Stack = createNativeStackNavigator();
+
+// A mock screen to navigate to after login
+const MockHomeScreen = () => <View><Text>Welcome to the app!</Text></View>;
+
+describe('Auth Flow Integration', () => {
+  let alertSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    // Reset the mock repository before each test
+    AuthRepositoryMock.getInstance().reset();
+    
+    // Spy on Alert.alert and mock its implementation
+    alertSpy = jest.spyOn(Alert, 'alert');
+  });
+
+  afterEach(() => {
+    // Restore the original implementation after each test
+    alertSpy.mockRestore();
+  });
+
+  it('should allow a user to register and then login', async () => {
+    const { getByPlaceholderText, getByText, findByText } = render(
+      <AuthProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Register">
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="MainApp" component={MockHomeScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthProvider>
+    );
+
+    // --- Registration Step ---
+    fireEvent.changeText(getByPlaceholderText('Usuário:'), 'Test User');
+    fireEvent.changeText(getByPlaceholderText('Email:'), 'test@example.com');
+    fireEvent.changeText(getByPlaceholderText('Senha:'), 'Password@123');
+    fireEvent.changeText(getByPlaceholderText('Confirmar senha:'), 'Password@123');
+    
+    // Mock the alert implementation for the success case
+    alertSpy.mockImplementation((title, message, buttons) => {
+      if (buttons && buttons[0] && buttons[0].onPress) {
+        buttons[0].onPress(); // Automatically press the "OK" button
+      }
+    });
+
+    fireEvent.press(getByText('Registrar'));
+
+    // Wait for the success alert to have been called
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Sucesso',
+        'Cadastro realizado com sucesso!',
+        expect.any(Array)
+      );
+    });
+    
+    // --- Login Step ---
+    // Now we should be on the Login screen
+    await waitFor(() => {
+        expect(getByPlaceholderText('Email:')).toBeTruthy();
+        expect(getByPlaceholderText('Senha:')).toBeTruthy();
+    });
+
+    fireEvent.changeText(getByPlaceholderText('Email:'), 'test@example.com');
+    fireEvent.changeText(getByPlaceholderText('Senha:'), 'Password@123');
+
+    await act(async () => {
+      fireEvent.press(getByText('Login'));
+    });
+
+    // --- Verification Step ---
+    // Verify navigation to the main app screen occurred
+    expect(await findByText('Welcome to the app!')).toBeTruthy();
+
+    // Verify user exists in the mock database
+    const user = await AuthRepositoryMock.getInstance().findByEmail(Email.create('test@example.com'));
+    expect(user).not.toBeNull();
+    expect(user?.name.value).toBe('Test User');
+  });
+});

@@ -4,6 +4,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import SplashScreen from './src/screens/SplashScreen';
 
+import { AuthProvider } from './src/context/AuthContext';
+
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   
@@ -13,13 +15,16 @@ export default function App() {
   
   return (
     <GestureHandlerRootView style={styles.container}>
-      {isLoading ? (
-        <SplashScreen onFinish={handleSplashFinish} />
-      ) : (
-        <AppNavigator />
-      )}
+      <AuthProvider>
+        {isLoading ? (
+          <SplashScreen onFinish={handleSplashFinish} />
+        ) : (
+          <AppNavigator />
+        )}
+      </AuthProvider>
     </GestureHandlerRootView>
   );
+}
 }
 
 const styles = StyleSheet.create({

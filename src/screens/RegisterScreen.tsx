@@ -17,15 +17,20 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
+import { useAuth } from '../context/AuthContext';
+import { Name } from '../core/domain/value-objects/Name';
+import { Email } from '../core/domain/value-objects/Email';
+import { Password } from '../core/domain/value-objects/Password';
+
 const RegisterScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { register } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = () => {
-    // Validações básicas
+  const handleRegister = async () => {
     if (!username || !email || !password || !confirmPassword) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
       return;
@@ -36,15 +41,16 @@ const RegisterScreen = () => {
       return;
     }
 
-    // Aqui implementaríamos a lógica de registro real
-    console.log('Register attempt:', { username, email, password });
-    
-    // Após registro bem-sucedido, voltaríamos para a tela de login
-    Alert.alert(
-      'Sucesso', 
-      'Cadastro realizado com sucesso!', 
-      [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
-    );
+    try {
+      await register(Name.create(username), Email.create(email), Password.create(password));
+      Alert.alert(
+        'Sucesso',
+        'Cadastro realizado com sucesso!',
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+      );
+    } catch (error) {
+      Alert.alert('Erro', error.message);
+    }
   };
 
   return (

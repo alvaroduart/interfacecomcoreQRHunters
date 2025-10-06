@@ -2,10 +2,10 @@ import { ProgressRepository } from '../repositories/ProgressRepository';
 import { QRCode } from '../entities/QRCode';
 
 export class GetUserProgressUseCase {
-  constructor(private progressRepository: ProgressRepository) {}
+  constructor(private readonly progressRepository: ProgressRepository) {}
 
-  async execute(userId: string): Promise<QRCode[]> {
+  async execute(params: { userId: string }): Promise<QRCode[]> {
+    const { userId } = params;
     return this.progressRepository.getUserProgress(userId);
   }
 }
-
