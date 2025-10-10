@@ -1,5 +1,5 @@
 import { makeAuthUseCases } from '../../../factories/AuthFactory';
-import { AuthRepositoryMock } from '@/core/infra/repositories/AuthRepositoryMock';
+import { AuthRepositoryMock } from '../../../infra/repositories/AuthRepositoryMock';
 
 describe('Casos de Uso de Autenticação', () => {
   beforeEach(() => {
@@ -39,12 +39,12 @@ describe('Casos de Uso de Autenticação', () => {
     await registerUseCase.execute(registerParams);
 
     const loginParams = {
-      name: 'testuser',
+      email: 'test@example.com',
       password: 'Password123!',
     };
     const user = await loginUseCase.execute(loginParams);
     expect(user).toBeDefined();
-    expect(user.name.value).toBe('testuser');
+    expect(user.email.value).toBe('test@example.com');
   });
 
   it('deve atualizar o perfil de um usuário com sucesso', async () => {
@@ -99,7 +99,7 @@ describe('Casos de Uso de Autenticação', () => {
     expect(success).toBe(true);
 
     const loginParams = {
-      name: 'testuser',
+      email: 'test@example.com',
       password: 'Password123!',
     };
     await expect(loginUseCase.execute(loginParams)).rejects.toThrow('Invalid credentials');

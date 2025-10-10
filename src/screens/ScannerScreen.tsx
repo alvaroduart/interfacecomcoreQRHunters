@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
 
 const { width } = Dimensions.get('window');
@@ -45,12 +45,10 @@ const ScannerScreen = () => {
       {/* Cabeçalho */}
       <View style={styles.header}>
         <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
-          <Text>
-            <Ionicons name="menu" size={28} color="#fff" />
-          </Text>
+          <Ionicons name="menu" size={28} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Validar Qr Code</Text>
-        <View style={{width: 40}} /> {/* Espaço para manter o cabeçalho centralizado */}
+        <View style={{ width: 40 }} />
       </View>
 
       {/* Área da câmera */}
@@ -64,13 +62,11 @@ const ScannerScreen = () => {
               <View style={styles.cornerBR} />
             </View>
           </View>
-          <Text>
-            <Ionicons 
-              name="qr-code" 
-              size={150} 
-              color="rgba(255,255,255,0.2)" 
-            />
-          </Text>
+          <Ionicons 
+            name="qr-code" 
+            size={150} 
+            color="rgba(255,255,255,0.2)" 
+          />
         </View>
 
         {/* Guia para o usuário */}
@@ -104,7 +100,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.primary,
-    paddingVertical: 16,
+    paddingTop: 50,
+    paddingBottom: 16,
     paddingHorizontal: 12,
     elevation: 4,
     shadowColor: '#000',

@@ -3,20 +3,34 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import theme from '../theme/theme';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
 
 const DrawerContent = (props: any) => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    // Implementar lógica de logout aqui
-    navigation.reset({
+    logout();
+    (navigation as any).reset({
       index: 0,
       routes: [{ name: 'Login' }]
     });
   };
+
+  // Detecta a tab ativa
+  const tabIndex = useNavigationState(state => {
+    const mainApp = state.routes.find(r => r.name === 'MainApp');
+    if (!mainApp || !mainApp.state) return 0;
+    // Compatível com navegação aninhada
+    if (mainApp.state.index !== undefined) return mainApp.state.index;
+    if (mainApp.state.routes && mainApp.state.routes.length > 0) {
+      return mainApp.state.routes.findIndex((r: any) => r.state && r.state.isActive);
+    }
+    return 0;
+  });
+  const tabNames = ['Scanner', 'Progress', 'Route'];
+  const activeTab = tabNames[tabIndex] || 'Scanner';
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
@@ -28,49 +42,54 @@ const DrawerContent = (props: any) => {
         <TouchableOpacity 
           style={styles.menuItem} 
           onPress={() => {
-            props.navigation.navigate('MainApp', { screen: 'Scanner' });
+            props.navigation.navigate('MainApp', {
+              screen: activeTab,
+              params: { screen: 'Perfil' }
+            });
+            props.navigation.closeDrawer && props.navigation.closeDrawer();
           }}
         >
-          <Text>
-            <Ionicons name="qr-code-outline" size={22} color={theme.colors.text.primary} />
-          </Text>
-          <Text style={styles.menuItemText}>Scanner</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.menuItem} 
-          onPress={() => {
-            props.navigation.navigate('MainApp', { screen: 'Progress' });
-          }}
-        >
-          <Text>
-            <Ionicons name="list-outline" size={22} color={theme.colors.text.primary} />
-          </Text>
-          <Text style={styles.menuItemText}>Progresso</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.menuItem} 
-          onPress={() => {
-            props.navigation.navigate('MainApp', { screen: 'Route' });
-          }}
-        >
-          <Text>
-            <Ionicons name="map-outline" size={22} color={theme.colors.text.primary} />
-          </Text>
-          <Text style={styles.menuItemText}>Percurso</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.menuItem} 
-          onPress={() => {
-            props.navigation.navigate('Profile');
-          }}
-        >
-          <Text>
-            <Ionicons name="person-outline" size={22} color={theme.colors.text.primary} />
-          </Text>
+          <Ionicons name="person-outline" size={22} color={theme.colors.text.primary} />
           <Text style={styles.menuItemText}>Perfil</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => {
+            props.navigation.navigate('MainApp', {
+              screen: activeTab,
+              params: { screen: 'Jornadas' }
+            });
+            props.navigation.closeDrawer && props.navigation.closeDrawer();
+          }}
+        >
+          <Ionicons name="walk-outline" size={22} color={theme.colors.text.primary} />
+          <Text style={styles.menuItemText}>Jornadas</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => {
+            props.navigation.navigate('MainApp', {
+              screen: activeTab,
+              params: { screen: 'Histórico' }
+            });
+            props.navigation.closeDrawer && props.navigation.closeDrawer();
+          }}
+        >
+          <Ionicons name="time-outline" size={22} color={theme.colors.text.primary} />
+          <Text style={styles.menuItemText}>Histórico</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.menuItem} 
+          onPress={() => {
+            props.navigation.navigate('MainApp', {
+              screen: activeTab,
+              params: { screen: 'Recompensas' }
+            });
+            props.navigation.closeDrawer && props.navigation.closeDrawer();
+          }}
+        >
+          <Ionicons name="gift-outline" size={22} color={theme.colors.text.primary} />
+          <Text style={styles.menuItemText}>Recompensas</Text>
         </TouchableOpacity>
       </View>
       

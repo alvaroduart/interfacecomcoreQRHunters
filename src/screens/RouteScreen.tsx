@@ -56,12 +56,10 @@ const RouteScreen = () => {
       {/* Cabeçalho */}
       <View style={styles.header}>
         <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
-          <Text>
-            <Ionicons name="menu" size={28} color="#fff" />
-          </Text>
+          <Ionicons name="menu" size={28} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{journey ? journey.name : 'Percurso'}</Text>
-        <View style={{width: 40}} /> {/* Espaço para manter o cabeçalho centralizado */}
+        <Text style={styles.headerTitle}>Percurso</Text>
+        <View style={{ width: 40 }} />
       </View>
       
       {/* Conteúdo do Mapa */}

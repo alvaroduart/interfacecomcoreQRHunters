@@ -16,16 +16,21 @@ import theme from '../theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-
+import {makeAuthUseCases} from '../core/factories/AuthFactory';
 import { useAuth } from '../context/AuthContext';
 import { Email } from '../core/domain/value-objects/Email';
 import { Password } from '../core/domain/value-objects/Password';
+
 
 const LoginScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const Login = makeAuthUseCases()
+
+
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -34,11 +39,8 @@ const LoginScreen = () => {
     }
 
     try {
-      await login(Email.create(email), Password.create(password));
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainApp' }],
-      });
+  await login(email, password);
+      // Ao autenticar, o contexto será atualizado e o StackNavigator redireciona automaticamente
     } catch (error) {
       Alert.alert('Erro', error.message);
     }
@@ -50,52 +52,49 @@ const LoginScreen = () => {
 
   return (
     <BaseScreen>
-      <StatusBar style="auto" />
-      
+      <StatusBar style="dark" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
-      > 
+      >
         <View style={styles.logoContainer}>
           <Image
             source={require('../assets/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
+          <Text style={styles.logoText}>QrHunters</Text>
         </View>
-        
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Email:"
-            placeholderTextColor="#fff"
+            placeholder="Email"
+            placeholderTextColor={theme.colors.text.secondary}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
           />
-          
           <TextInput
             style={styles.input}
-            placeholder="Senha:"
-            placeholderTextColor="#fff"
+            placeholder="Senha"
+            placeholderTextColor={theme.colors.text.secondary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
-          
           <TouchableOpacity
             style={styles.loginButton}
             onPress={handleLogin}
+            activeOpacity={0.8}
           >
-            <Text style={styles.loginButtonText}>Login</Text>
+            <Text style={styles.loginButtonText}>Entrar</Text>
           </TouchableOpacity>
         </View>
-        
         <View style={styles.registerContainer}>
           <Text style={styles.registerText}>Não possui uma conta?</Text>
           <TouchableOpacity onPress={handleRegister}>
-            <Text style={styles.registerLink}>Cadastrar-se</Text>
+            <Text style={styles.registerLink}>Cadastre-se</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -109,69 +108,75 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  headerText: {
-    fontSize: theme.fontSizes.large,
-    fontWeight: theme.fontWeights.light,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.lg,
+    backgroundColor: '#F8F8F8',
+    paddingHorizontal: 24,
   },
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: theme.spacing.xxl,
+    marginBottom: 16,
   },
   logo: {
-    width: 200,
-    height: 200,
-    resizeMode: 'contain',
-  } as const,
+    width: 120,
+    height: 120,
+    marginBottom: 8,
+  },
   logoText: {
-    fontSize: theme.fontSizes.extraLarge,
-    fontWeight: theme.fontWeights.bold,
+    fontSize: 32,
+    fontWeight: 'bold',
     color: theme.colors.primary,
-    marginTop: -20,
+    marginBottom: 8,
+    letterSpacing: 1,
   },
   inputContainer: {
     width: '100%',
-    marginBottom: theme.spacing.xl,
+    marginBottom: 24,
   },
   input: {
-    backgroundColor: theme.colors.input.background,
-    color: theme.colors.input.text,
-    borderRadius: theme.borderRadius.large,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    marginBottom: theme.spacing.md,
-    fontSize: theme.fontSizes.regular,
+    backgroundColor: '#fff',
+    color: theme.colors.text.primary,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   loginButton: {
-    backgroundColor: theme.colors.button.primary,
-    borderRadius: theme.borderRadius.large,
-    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: theme.spacing.md,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   loginButtonText: {
-    color: theme.colors.button.text,
-    fontSize: theme.fontSizes.medium,
-    fontWeight: theme.fontWeights.bold,
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
   registerContainer: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: theme.spacing.lg,
+    marginTop: 16,
   },
   registerText: {
-    fontSize: theme.fontSizes.regular,
-    color: theme.colors.text.inverted,
-    marginBottom: theme.spacing.xs,
+    fontSize: 15,
+    color: theme.colors.text.secondary,
+    marginRight: 6,
   },
   registerLink: {
-    fontSize: theme.fontSizes.medium,
-    color: theme.colors.accent,
-    fontWeight: theme.fontWeights.bold,
+    fontSize: 15,
+    color: theme.colors.primary,
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
 });
 

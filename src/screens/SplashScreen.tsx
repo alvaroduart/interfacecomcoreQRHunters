@@ -1,20 +1,18 @@
+
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Animated } from 'react-native';
 import theme from '../theme/theme';
 
-interface SplashScreenProps {
-  onFinish: () => void;
-}
+type SplashScreenProps = {
+  navigation: any;
+};
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
-  // Animações
+const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
   const opacity = new Animated.Value(0);
   const scale = new Animated.Value(0.8);
 
   useEffect(() => {
-    // Sequência de animações
     Animated.sequence([
-      // Fade-in e escala
       Animated.parallel([
         Animated.timing(opacity, {
           toValue: 1,
@@ -28,19 +26,18 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
           useNativeDriver: true,
         }),
       ]),
-      // Aguarda um pouco
       Animated.delay(1000),
-      // Fade-out
       Animated.timing(opacity, {
         toValue: 0,
         duration: 500,
         useNativeDriver: true,
       })
     ]).start(() => {
-      // Quando a animação terminar, chamamos o callback
-      onFinish();
+      if (navigation && typeof navigation.replace === 'function') {
+        navigation.replace('Login');
+      }
     });
-  }, []);
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

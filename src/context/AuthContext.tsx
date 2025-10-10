@@ -7,8 +7,8 @@ import { Password } from '../core/domain/value-objects/Password';
 
 interface AuthContextData {
   user: User | null;
-  login: (email: Email, password: Password) => Promise<User>;
-  register: (name: Name, email: Email, password: Password) => Promise<User>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (name: string, email: string, password: string) => Promise<User>;
   logout: () => void;
 }
 
@@ -18,14 +18,14 @@ export const AuthProvider: React.FC<{children: ReactNode, initialUser?: User | n
   const [user, setUser] = useState<User | null>(initialUser);
   const { loginUseCase, registerUseCase } = makeAuthUseCases();
 
-  const login = async (email: Email, password: Password) => {
-    const loggedUser = await loginUseCase.execute(email, password);
+  const login = async (email: string, password: string) => {
+    const loggedUser = await loginUseCase.execute({ email, password });
     setUser(loggedUser);
     return loggedUser;
   };
 
-  const register = async (name: Name, email: Email, password: Password) => {
-    const newUser = await registerUseCase.execute(name, email, password);
+  const register = async (name: string, email: string, password: string) => {
+    const newUser = await registerUseCase.execute({ name, email, password });
     return newUser;
   };
 

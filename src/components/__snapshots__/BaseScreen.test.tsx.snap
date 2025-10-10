@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BaseScreen applies style and backgroundColor props 1`] = `
+<RCTSafeAreaView
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      {
+        "backgroundColor": "#f7f6ed",
+      },
+      {
+        "backgroundColor": "red",
+      },
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "flex": 1,
+        "padding": 24,
+        "zIndex": 2,
+      }
+    }
+  >
+    <Text>
+      Styled
+    </Text>
+  </View>
+  <View
+    style={
+      [
+        {
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "zIndex": 1,
+        },
+        {
+          "backgroundColor": "#4169e1",
+          "borderTopLeftRadius": 130,
+          "borderTopRightRadius": 130,
+          "bottom": 0,
+          "height": "40%",
+        },
+        {},
+      ]
+    }
+  />
+</RCTSafeAreaView>
+`;

@@ -128,11 +128,11 @@ describe('LoginScreen Integration Tests', () => {
     );
 
     // Fill in login form
-    fireEvent.changeText(getByPlaceholderText('Email:'), 'test@example.com');
-    fireEvent.changeText(getByPlaceholderText('Senha:'), 'Password123!');
+      fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
+      fireEvent.changeText(getByPlaceholderText('Senha'), 'Password123!');
     
     // Click login button
-    fireEvent.press(getByText('Login'));
+      fireEvent.press(getByText('Entrar'));
     
     // Check if the user was authenticated successfully
     const repo = AuthRepositoryMock.getInstance();
@@ -154,7 +154,7 @@ describe('LoginScreen Integration Tests', () => {
     );
 
     // Click login button without filling the form
-    fireEvent.press(getByText('Login'));
+      fireEvent.press(getByText('Entrar'));
     
     // Check that the alert was shown
     expect(Alert.alert).toHaveBeenCalledWith('Erro', 'Por favor, preencha todos os campos');
@@ -173,11 +173,11 @@ describe('LoginScreen Integration Tests', () => {
     );
 
     // Fill in login form with credentials that don't match any user
-    fireEvent.changeText(getByPlaceholderText('Email:'), 'wrong@example.com');
-    fireEvent.changeText(getByPlaceholderText('Senha:'), 'WrongPassword123!');
+      fireEvent.changeText(getByPlaceholderText('Email'), 'wrong@example.com');
+      fireEvent.changeText(getByPlaceholderText('Senha'), 'WrongPassword123!');
     
     // Click login button
-    fireEvent.press(getByText('Login'));
+      fireEvent.press(getByText('Entrar'));
     
     // Wait for the alert to be called
     await waitFor(() => {
@@ -199,7 +199,7 @@ describe('LoginScreen Integration Tests', () => {
     );
 
     // Click on register link
-    fireEvent.press(getByText('Cadastrar-se'));
+      fireEvent.press(getByText('Cadastre-se'));
     
     // Check that navigation was called
     expect(mockNavigate).toHaveBeenCalledWith('Register');
@@ -218,11 +218,11 @@ describe('LoginScreen Integration Tests', () => {
     );
 
     // Fill in login form with invalid email format
-    fireEvent.changeText(getByPlaceholderText('Email:'), 'invalid-email');
-    fireEvent.changeText(getByPlaceholderText('Senha:'), 'Password123!');
+      fireEvent.changeText(getByPlaceholderText('Email'), 'invalid-email');
+      fireEvent.changeText(getByPlaceholderText('Senha'), 'Password123!');
     
     // Click login button
-    fireEvent.press(getByText('Login'));
+      fireEvent.press(getByText('Entrar'));
     
     // Wait for the alert to be called with email validation error
     await waitFor(() => {
@@ -243,11 +243,11 @@ describe('LoginScreen Integration Tests', () => {
     );
 
     // Fill in login form with valid email but invalid password
-    fireEvent.changeText(getByPlaceholderText('Email:'), 'valid@example.com');
-    fireEvent.changeText(getByPlaceholderText('Senha:'), '123'); // Too short password
+      fireEvent.changeText(getByPlaceholderText('Email'), 'valid@example.com');
+      fireEvent.changeText(getByPlaceholderText('Senha'), '123'); // Too short password
     
     // Click login button
-    fireEvent.press(getByText('Login'));
+      fireEvent.press(getByText('Entrar'));
     
     // Wait for the alert to be called with password validation error
     await waitFor(() => {

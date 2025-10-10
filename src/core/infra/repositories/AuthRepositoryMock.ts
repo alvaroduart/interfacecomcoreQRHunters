@@ -17,8 +17,8 @@ export class AuthRepositoryMock implements AuthRepository {
     return AuthRepositoryMock.instance;
   }
 
-  async login(username: Name, password: Password): Promise<User> {
-    const user = this.users.find(u => u.name.equals(username) && u.password.equals(password));
+  async login(email: Email, password: Password): Promise<User> {
+    const user = this.users.find(u => u.email.equals(email) && u.password.equals(password));
     if (user) {
       return user;
     }

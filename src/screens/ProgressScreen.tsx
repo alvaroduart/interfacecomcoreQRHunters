@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
 import { makeProgressUseCases } from '../core/factories';
 import { QRCode } from '../core/domain/entities/QRCode';
@@ -53,7 +53,7 @@ const ProgressScreen = () => {
         
         <View style={styles.checkpointDetails}>
           <Text style={styles.locationText}>{item.location.value}</Text>
-          {item.timestamp && <Text style={styles.timeText}>{item.timestamp.toLocaleTimeString()}</Text>}
+          {item.scannedAt && <Text style={styles.timeText}>{item.scannedAt.toLocaleTimeString()}</Text>}
         </View>
       </View>
     );
@@ -66,9 +66,7 @@ const ProgressScreen = () => {
       {/* Cabeçalho */}
       <View style={styles.header}>
         <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
-          <Text>
-            <Ionicons name="menu" size={28} color="#fff" />
-          </Text>
+          <Ionicons name="menu" size={28} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Progresso</Text>
         <View style={{width: 40}} /> {/* Espaço para manter o cabeçalho centralizado */}

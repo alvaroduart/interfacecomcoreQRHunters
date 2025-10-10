@@ -97,10 +97,10 @@ describe('Auth Flow Integration', () => {
     );
 
     // --- Registration Step ---
-    fireEvent.changeText(getByPlaceholderText('Usuário:'), 'TestUser');
-    fireEvent.changeText(getByPlaceholderText('Email:'), 'test@example.com');
-    fireEvent.changeText(getByPlaceholderText('Senha:'), 'Password123!');
-    fireEvent.changeText(getByPlaceholderText('Confirmar senha:'), 'Password123!');
+  fireEvent.changeText(getByPlaceholderText('Nome de usuário'), 'TestUser');
+  fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
+  fireEvent.changeText(getByPlaceholderText('Senha'), 'Password123!');
+  fireEvent.changeText(getByPlaceholderText('Confirmar senha'), 'Password123!');
     
     // Mock the alert implementation for the success case
     alertSpy.mockImplementation((title, message, buttons) => {
@@ -109,7 +109,7 @@ describe('Auth Flow Integration', () => {
       }
     });
 
-    fireEvent.press(getByText('Registrar'));
+  fireEvent.press(getByText('Cadastrar'));
 
     // Skip checking the alert, just check that the mock register function was called
     // Mock the alert
@@ -122,27 +122,15 @@ describe('Auth Flow Integration', () => {
     
     // --- Login Step ---
     // Now we should be on the Login screen
-    await waitFor(() => {
-        expect(getByPlaceholderText('Email:')).toBeTruthy();
-        expect(getByPlaceholderText('Senha:')).toBeTruthy();
-    });
+  await waitFor(() => {
+    expect(getByPlaceholderText('Email')).toBeTruthy();
+    expect(getByPlaceholderText('Senha')).toBeTruthy();
+  });
 
-    fireEvent.changeText(getByPlaceholderText('Email:'), 'test@example.com');
-    fireEvent.changeText(getByPlaceholderText('Senha:'), 'Password@123');
+  fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
+  fireEvent.changeText(getByPlaceholderText('Senha'), 'Password@123');
 
-    // Mock the login function
-    const mockUserLoggedIn = jest.fn();
-    
-    // Skip the login test, just mock a success case
-    // Directly check the registered user in the mock repository
-    
-    // Use this to create a mock user that we can use to validate
-    await AuthRepositoryMock.getInstance().register(
-      Name.create('TestUser'), 
-      Email.create('test@example.com'), 
-      Password.create('Password123!')
-    );
-    
+    // Verifica se o usuário foi registrado corretamente no mock
     const registeredUser = await AuthRepositoryMock.getInstance().findByEmail(Email.create('test@example.com'));
     expect(registeredUser).not.toBeNull();
     expect(registeredUser?.name.value).toBe('TestUser');
