@@ -8,9 +8,9 @@ describe('Objeto de Valor: Name', () => {
   });
 
   it('deve lançar um erro para um nome inválido', () => {
-    expect(() => Name.create('a')).toThrow('Invalid name. Name must be between 2 and 50 characters and contain only letters and spaces.');
-    expect(() => Name.create('a'.repeat(51))).toThrow('Invalid name. Name must be between 2 and 50 characters and contain only letters and spaces.');
-    expect(() => Name.create('Invalid123')).toThrow('Invalid name. Name must be between 2 and 50 characters and contain only letters and spaces.');
+  expect(() => Name.create('a')).toThrow('Nome inválido. O nome deve ter entre 2 e 50 caracteres e conter apenas letras e espaços.');
+  expect(() => Name.create('a'.repeat(51))).toThrow('Nome inválido. O nome deve ter entre 2 e 50 caracteres e conter apenas letras e espaços.');
+  expect(() => Name.create('Invalid123')).toThrow('Nome inválido. O nome deve ter entre 2 e 50 caracteres e conter apenas letras e espaços.');
   });
 
   it('deve comparar corretamente dois objetos de nome', () => {

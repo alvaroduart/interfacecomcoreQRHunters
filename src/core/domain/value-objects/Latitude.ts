@@ -1,7 +1,7 @@
 export class Latitude {
     private constructor(readonly value: number) {
         if (!Latitude.isValid(value)) {
-            throw new Error("Invalid latitude. Latitude must be between -90 and 90.");
+            throw new Error("Latitude inválida. A latitude deve estar entre -90 e 90.");
         }
     }
 

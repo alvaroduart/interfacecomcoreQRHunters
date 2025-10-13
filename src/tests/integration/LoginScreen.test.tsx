@@ -10,7 +10,7 @@ import { Name } from '../../core/domain/value-objects/Name';
 import { Password } from '../../core/domain/value-objects/Password';
 import { Alert, View, Text } from 'react-native';
 
-// Mocking react-native-gesture-handler
+// Mock do react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => {
   const View = require('react-native/Libraries/Components/View/View');
   return {
@@ -45,14 +45,14 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-// Mocking reanimated
+// Mock do react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const Reanimated = require('react-native-reanimated/mock');
   Reanimated.default.call = () => {};
   return Reanimated;
 });
 
-// Mock navigation hooks
+// Mock dos hooks de navegação
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 
@@ -66,7 +66,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock Alert
+// Mock do Alert
 jest.mock('react-native', () => {
   const rn = jest.requireActual('react-native');
   rn.Alert.alert = jest.fn();
@@ -75,14 +75,14 @@ jest.mock('react-native', () => {
 
 const Stack = createNativeStackNavigator();
 
-// A mock screen to navigate to after login
+// Uma tela mock para navegar após o login
 const MockHomeScreen = () => (
   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
     <Text testID="welcome-message">Welcome to the app!</Text>
   </View>
 );
 
-// Mock Register screen
+// Tela de registro mock
 const MockRegisterScreen = () => (
   <View>
     <Text>Register Screen</Text>
@@ -91,18 +91,18 @@ const MockRegisterScreen = () => (
 
 describe('LoginScreen Integration Tests', () => {
   beforeEach(() => {
-    // Reset the mock repository before each test
+  // Resetar o repositório mock antes de cada teste
     AuthRepositoryMock.getInstance().reset();
     
-    // Reset navigation mocks
+  // Resetar mocks de navegação
     mockNavigate.mockReset();
     mockReset.mockReset();
     
-    // Reset Alert mock
+  // Resetar mock do Alert
     jest.mocked(Alert.alert).mockReset();
   });
 
-  // Helper function to create a test user
+  // ajuda função para criar um usuário de teste
   const createTestUser = async () => {
     return await AuthRepositoryMock.getInstance().register(
       Name.create('TestUser'), 
@@ -111,8 +111,8 @@ describe('LoginScreen Integration Tests', () => {
     );
   };
 
-    // Test case 1: Successful login
-  it('should login successfully with valid credentials', async () => {
+    // Caso de teste 1: Login bem-sucedido
+  it('deve fazer login com sucesso com credenciais válidas', async () => {
     // Create a test user in the repository
     await createTestUser();
     
@@ -127,21 +127,21 @@ describe('LoginScreen Integration Tests', () => {
       </AuthProvider>
     );
 
-    // Fill in login form
+    // Preencher o formulário de login
       fireEvent.changeText(getByPlaceholderText('Email'), 'test@example.com');
       fireEvent.changeText(getByPlaceholderText('Senha'), 'Password123!');
-    
-    // Click login button
+
+    // Clicar no botão de login
       fireEvent.press(getByText('Entrar'));
-    
-    // Check if the user was authenticated successfully
+
+    // Verificar se o usuário foi autenticado com sucesso
     const repo = AuthRepositoryMock.getInstance();
     const authenticatedUser = await repo.findByEmail(Email.create('test@example.com'));
     expect(authenticatedUser).not.toBeNull();
     expect(authenticatedUser?.email.value).toBe('test@example.com');
   });
 
-  // Test case 2: Login with empty fields
+  // Caso de teste 2: Login com campos vazios
   it('should show an alert when fields are empty', async () => {
     const { getByText } = render(
       <AuthProvider>
@@ -153,15 +153,15 @@ describe('LoginScreen Integration Tests', () => {
       </AuthProvider>
     );
 
-    // Click login button without filling the form
+    // Clicar no botão de login sem preencher o formulário
       fireEvent.press(getByText('Entrar'));
-    
-    // Check that the alert was shown
+
+    // Verificar se o alerta foi exibido
     expect(Alert.alert).toHaveBeenCalledWith('Erro', 'Por favor, preencha todos os campos');
   });
 
-  // Test case 3: Login with invalid credentials
-  it('should show an error alert with invalid credentials', async () => {
+  // Caso de teste 3: Login com credenciais inválidas
+  it('deve mostrar um alerta de erro com credenciais inválidas', async () => {
     const { getByPlaceholderText, getByText } = render(
       <AuthProvider>
         <NavigationContainer>
@@ -172,20 +172,20 @@ describe('LoginScreen Integration Tests', () => {
       </AuthProvider>
     );
 
-    // Fill in login form with credentials that don't match any user
+    // Preencher o formulário de login com credenciais que não correspondem a nenhum usuário
       fireEvent.changeText(getByPlaceholderText('Email'), 'wrong@example.com');
       fireEvent.changeText(getByPlaceholderText('Senha'), 'WrongPassword123!');
-    
-    // Click login button
+
+    // Clicar no botão de login
       fireEvent.press(getByText('Entrar'));
-    
-    // Wait for the alert to be called
+
+    // Esperar que o alerta seja chamado
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalled();
     });
   });
 
-  // Test case 4: Navigate to register screen
+  // Caso de teste 4: Navegar para a tela de registro
   it('should navigate to register screen when register link is pressed', () => {
     const { getByText } = render(
       <AuthProvider>
@@ -198,15 +198,15 @@ describe('LoginScreen Integration Tests', () => {
       </AuthProvider>
     );
 
-    // Click on register link
+    // Clicar no link de registro
       fireEvent.press(getByText('Cadastre-se'));
-    
-    // Check that navigation was called
+
+    // Verificar se a navegação foi chamada
     expect(mockNavigate).toHaveBeenCalledWith('Register');
   });
 
-  // Test case 5: Test with invalid email format
-  it('should show an error when email format is invalid', async () => {
+  // Caso de teste 5: Testar com formato de email inválido
+  it('deve mostrar um erro quando o formato do email é inválido', async () => {
     const { getByPlaceholderText, getByText } = render(
       <AuthProvider>
         <NavigationContainer>
@@ -217,21 +217,21 @@ describe('LoginScreen Integration Tests', () => {
       </AuthProvider>
     );
 
-    // Fill in login form with invalid email format
+    // Preencher o formulário de login com formato de email inválido
       fireEvent.changeText(getByPlaceholderText('Email'), 'invalid-email');
       fireEvent.changeText(getByPlaceholderText('Senha'), 'Password123!');
-    
-    // Click login button
+
+    // Clicar no botão de login
       fireEvent.press(getByText('Entrar'));
-    
-    // Wait for the alert to be called with email validation error
+
+    // Esperar que o alerta seja chamado com erro de validação de email
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalled();
     });
   });
 
-  // Test case 6: Test with invalid password format
-  it('should show an error when password format is invalid', async () => {
+  // Caso de teste 6: Testar com formato de senha inválido
+  it('deve mostrar um erro quando o formato da senha é inválido', async () => {
     const { getByPlaceholderText, getByText } = render(
       <AuthProvider>
         <NavigationContainer>
@@ -242,14 +242,14 @@ describe('LoginScreen Integration Tests', () => {
       </AuthProvider>
     );
 
-    // Fill in login form with valid email but invalid password
+    // Preencher o formulário de login com email válido, mas senha inválida
       fireEvent.changeText(getByPlaceholderText('Email'), 'valid@example.com');
-      fireEvent.changeText(getByPlaceholderText('Senha'), '123'); // Too short password
-    
-    // Click login button
+      fireEvent.changeText(getByPlaceholderText('Senha'), '123'); // Senha muito curta
+
+    // Clicar no botão de login
       fireEvent.press(getByText('Entrar'));
-    
-    // Wait for the alert to be called with password validation error
+
+    // Esperar que o alerta seja chamado com erro de validação de senha
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalled();
     });

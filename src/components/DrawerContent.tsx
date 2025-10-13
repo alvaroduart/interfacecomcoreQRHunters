@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import theme from '../theme/theme';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { useNavigation, useNavigationState, CommonActions } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 
 const DrawerContent = (props: any) => {
@@ -11,26 +11,24 @@ const DrawerContent = (props: any) => {
   const { logout } = useAuth();
 
   const handleLogout = () => {
+    // Chama logout (o StackNavigator principal reage e mostra a tela de login)
     logout();
-    (navigation as any).reset({
-      index: 0,
-      routes: [{ name: 'Login' }]
-    });
+    props.navigation.closeDrawer && props.navigation.closeDrawer();
   };
 
-  // Detecta a tab ativa
-  const tabIndex = useNavigationState(state => {
-    const mainApp = state.routes.find(r => r.name === 'MainApp');
-    if (!mainApp || !mainApp.state) return 0;
-    // Compatível com navegação aninhada
-    if (mainApp.state.index !== undefined) return mainApp.state.index;
-    if (mainApp.state.routes && mainApp.state.routes.length > 0) {
-      return mainApp.state.routes.findIndex((r: any) => r.state && r.state.isActive);
+  // Determina a aba ativa no Tab Navigator pai; se falhar, usa 'Scanner' por padrão.
+  const parent = (props.navigation as any).getParent?.();
+  let activeTab = 'Scanner';
+  try {
+    if (parent && parent.getState) {
+      const pstate = parent.getState();
+      const idx = typeof pstate.index === 'number' ? pstate.index : 0;
+      const names = pstate.routeNames || (pstate.routes || []).map((r: any) => r.name);
+      activeTab = names && names[idx] ? names[idx] : 'Perfil';
     }
-    return 0;
-  });
-  const tabNames = ['Scanner', 'Progress', 'Route'];
-  const activeTab = tabNames[tabIndex] || 'Scanner';
+  } catch (e) {
+    activeTab = 'Scanner';
+  }
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
@@ -39,60 +37,87 @@ const DrawerContent = (props: any) => {
 
       {/* Links de navegação personalizados */}
       <View style={styles.drawerItems}>
-        <TouchableOpacity 
-          style={styles.menuItem} 
+        <TouchableOpacity
+          style={styles.menuItem}
           onPress={() => {
-            props.navigation.navigate('MainApp', {
-              screen: activeTab,
-              params: { screen: 'Perfil' }
-            });
+            const navParent = (props.navigation as any).getParent?.() || props.navigation;
+            // Navega explicitamente para a aba 'Perfil' (ativa a aba Perfil)
+            // Se possível, abre a rota padrão do drawer (ProfileOnly)
+            try {
+              navParent.navigate('Perfil');
+            } catch (e) {
+              // Fallback para tentar usar o activeTab calculado
+              navParent.navigate(activeTab, { screen: 'Perfil' });
+            }
             props.navigation.closeDrawer && props.navigation.closeDrawer();
           }}
         >
           <Ionicons name="person-outline" size={22} color={theme.colors.text.primary} />
           <Text style={styles.menuItemText}>Perfil</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.menuItem} 
+        <TouchableOpacity
+          style={styles.menuItem}
           onPress={() => {
-            props.navigation.navigate('MainApp', {
-              screen: activeTab,
-              params: { screen: 'Jornadas' }
-            });
+            const navParent = (props.navigation as any).getParent?.() || props.navigation;
+            // Navega explicitamente para a aba 'Perfil' e abre a tela 'Jornadas'
+              let navigated = false;
+            try {
+              if (props.navigation && typeof props.navigation.navigate === 'function') {
+                props.navigation.navigate('Jornadas');
+                  navigated = true; // This line remains unchanged
+              }
+            } catch (e) {
+              
+            }
+            
+           
+            try {
+                if (navParent && typeof navParent.navigate === 'function') {
+                navParent.navigate('Perfil', { screen: 'Jornadas' });
+                navigated = true;
+              }
+            } catch (e) {
+              
+            }
+            if (!navigated) {
+              try {
+                navParent.dispatch(
+                  CommonActions.navigate({
+                    name: 'Perfil',
+                    params: { screen: 'Jornadas' },
+                  })
+                );
+                navigated = true;
+              } catch (e) {
+                
+              }
+            }
+            if (!navigated) {
+              try {
+                
+                (navigation as any).navigate('Perfil', { screen: 'Jornadas' });
+                navigated = true;
+              } catch (e) {
+                
+              }
+            }
+            if (!navigated) {
+             
+              try {
+                (navigation as any).navigate('Scanner', { screen: 'Jornadas' });
+                navigated = true;
+              } catch (e) {
+                // nada a fazer
+              }
+            }
             props.navigation.closeDrawer && props.navigation.closeDrawer();
           }}
         >
           <Ionicons name="walk-outline" size={22} color={theme.colors.text.primary} />
           <Text style={styles.menuItemText}>Jornadas</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.menuItem} 
-          onPress={() => {
-            props.navigation.navigate('MainApp', {
-              screen: activeTab,
-              params: { screen: 'Histórico' }
-            });
-            props.navigation.closeDrawer && props.navigation.closeDrawer();
-          }}
-        >
-          <Ionicons name="time-outline" size={22} color={theme.colors.text.primary} />
-          <Text style={styles.menuItemText}>Histórico</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.menuItem} 
-          onPress={() => {
-            props.navigation.navigate('MainApp', {
-              screen: activeTab,
-              params: { screen: 'Recompensas' }
-            });
-            props.navigation.closeDrawer && props.navigation.closeDrawer();
-          }}
-        >
-          <Ionicons name="gift-outline" size={22} color={theme.colors.text.primary} />
-          <Text style={styles.menuItemText}>Recompensas</Text>
-        </TouchableOpacity>
-      </View>
-      
+        </View>
+
       {/* Divisor */}
       <View style={styles.divider} />
 

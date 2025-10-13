@@ -8,8 +8,8 @@ describe('Objeto de Valor: Latitude', () => {
   });
 
   it('deve lançar um erro para uma latitude inválida', () => {
-    expect(() => Latitude.create(-91)).toThrow('Invalid latitude. Latitude must be between -90 and 90.');
-    expect(() => Latitude.create(91)).toThrow('Invalid latitude. Latitude must be between -90 and 90.');
+  expect(() => Latitude.create(-91)).toThrow('Latitude inválida. A latitude deve estar entre -90 e 90.');
+  expect(() => Latitude.create(91)).toThrow('Latitude inválida. A latitude deve estar entre -90 e 90.');
   });
 
   it('deve comparar corretamente dois objetos de latitude', () => {

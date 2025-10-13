@@ -11,7 +11,7 @@ import { Email } from '../../core/domain/value-objects/Email';
 import { Name } from '../../core/domain/value-objects/Name';
 import { Password } from '../../core/domain/value-objects/Password';
 
-// Mocking react-native-gesture-handler
+// Mock do react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => {
   const View = require('react-native/Libraries/Components/View/View');
   return {
@@ -45,12 +45,12 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-// Mocking reanimated
+// Mock do react-native-reanimated
 jest.mock('react-native-reanimated', () => {
     const Reanimated = require('react-native-reanimated/mock');
   
-    // The mock for `call` immediately calls the callback which is incorrect
-    // So we override it with a no-op
+  // O mock para `call` invocava o callback imediatamente (incorreto)
+  // Substituímos por uma operação vazia
     Reanimated.default.call = () => {};
   
     return Reanimated;
@@ -60,7 +60,7 @@ import { Alert } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
-// A mock screen to navigate to after login
+// Uma tela mock para navegar após o login
 const MockHomeScreen = () => (
   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
     <Text testID="welcome-message">Welcome to the app!</Text>
@@ -71,10 +71,10 @@ describe('Auth Flow Integration', () => {
   let alertSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    // Reset the mock repository before each test
+  // Resetar o repositório mock antes de cada teste
     AuthRepositoryMock.getInstance().reset();
     
-    // Spy on Alert.alert and mock its implementation
+  // Espiar Alert.alert e mockar sua implementação
     alertSpy = jest.spyOn(Alert, 'alert');
   });
 
@@ -102,7 +102,7 @@ describe('Auth Flow Integration', () => {
   fireEvent.changeText(getByPlaceholderText('Senha'), 'Password123!');
   fireEvent.changeText(getByPlaceholderText('Confirmar senha'), 'Password123!');
     
-    // Mock the alert implementation for the success case
+  // Mock da implementação do alert para o caso de sucesso
     alertSpy.mockImplementation((title, message, buttons) => {
       if (buttons && buttons[0] && buttons[0].onPress) {
         buttons[0].onPress(); // Automatically press the "OK" button
@@ -111,8 +111,8 @@ describe('Auth Flow Integration', () => {
 
   fireEvent.press(getByText('Cadastrar'));
 
-    // Skip checking the alert, just check that the mock register function was called
-    // Mock the alert
+  // Pular verificação do alert; verificar apenas que o register mock foi chamado
+  // Mock do alert
     alertSpy.mockImplementation((title, message, buttons) => {
       // Call the onPress of the button
       if (buttons && buttons[0] && buttons[0].onPress) {

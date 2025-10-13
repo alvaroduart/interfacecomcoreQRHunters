@@ -5,12 +5,12 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   Alert,
-  SafeAreaView,
   Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
@@ -22,9 +22,7 @@ const ScannerScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [lastScannedData, setLastScannedData] = useState<string | null>(null);
 
-  const openDrawer = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  };
+  // Drawer intentionalmente não disponível nesta tela (drawer apenas no Profile)
 
   const simulateScan = () => {
     // Simular que um QR code de um ponto de controle foi escaneado
@@ -44,9 +42,7 @@ const ScannerScreen = () => {
       
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
-          <Ionicons name="menu" size={28} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
         <Text style={styles.headerTitle}>Validar Qr Code</Text>
         <View style={{ width: 40 }} />
       </View>
@@ -100,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.primary,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     paddingHorizontal: 12,
     elevation: 4,

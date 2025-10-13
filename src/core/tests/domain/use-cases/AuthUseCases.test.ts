@@ -26,7 +26,7 @@ describe('Casos de Uso de Autenticação', () => {
       password: 'NewPassword123!',
     };
     await registerUseCase.execute(params);
-    await expect(registerUseCase.execute(params)).rejects.toThrow('User already exists');
+  await expect(registerUseCase.execute(params)).rejects.toThrow('Usuário já existe');
   });
 
   it('deve logar um usuário com sucesso após o registro', async () => {
@@ -102,6 +102,6 @@ describe('Casos de Uso de Autenticação', () => {
       email: 'test@example.com',
       password: 'Password123!',
     };
-    await expect(loginUseCase.execute(loginParams)).rejects.toThrow('Invalid credentials');
+    await expect(loginUseCase.execute(loginParams)).rejects.toThrow('Credenciais inválidas');
   });
 });

@@ -1,5 +1,51 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`CurvedBackground renderiza com cor, altura, borderRadius e posição personalizados 1`] = `
+<View
+  style={
+    [
+      {
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "zIndex": 1,
+      },
+      {
+        "backgroundColor": "#123456",
+        "borderBottomLeftRadius": 50,
+        "borderBottomRightRadius": 50,
+        "height": 200,
+        "top": 0,
+      },
+      {},
+    ]
+  }
+/>
+`;
+
+exports[`CurvedBackground renderiza com posição bottom 1`] = `
+<View
+  style={
+    [
+      {
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "zIndex": 1,
+      },
+      {
+        "backgroundColor": "#4169e1",
+        "borderTopLeftRadius": 130,
+        "borderTopRightRadius": 130,
+        "bottom": 0,
+        "height": "40%",
+      },
+      {},
+    ]
+  }
+/>
+`;
+
 exports[`CurvedBackground renders with custom color, height, borderRadius, and position 1`] = `
 <View
   style={

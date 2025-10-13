@@ -8,7 +8,7 @@ describe('CurvedBackground', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with custom color, height, borderRadius, and position', () => {
+  it('renderiza com cor, altura, borderRadius e posição personalizados', () => {
     const { toJSON } = render(
       <CurvedBackground
         color="#123456"
@@ -20,7 +20,7 @@ describe('CurvedBackground', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with position bottom', () => {
+  it('renderiza com posição bottom', () => {
     const { toJSON } = render(
       <CurvedBackground position="bottom" />
     );

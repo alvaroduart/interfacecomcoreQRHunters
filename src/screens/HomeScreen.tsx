@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Journey } from '../core/domain/entities/Journey';
 import { makeJourneyUseCases } from '../core/factories';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
 
 const HomeScreen = () => {
@@ -40,17 +41,13 @@ const HomeScreen = () => {
     </TouchableOpacity>
   );
 
-  const openDrawer = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  };
+  // Drawer intentionalmente não disponível nesta tela (drawer apenas no Profile)
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Cabeçalho igual ao ProgressScreen */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
-          <Ionicons name="menu" size={28} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
         <Text style={styles.headerTitle}>Início</Text>
         <View style={{ width: 40 }} />
       </View>
@@ -79,7 +76,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.primary,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     paddingHorizontal: 12,
     elevation: 4,

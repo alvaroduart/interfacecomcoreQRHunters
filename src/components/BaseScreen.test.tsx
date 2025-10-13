@@ -35,7 +35,7 @@ describe('BaseScreen', () => {
         <Text>Back Test</Text>
       </BaseScreen>
     );
-    // Find TouchableOpacity and simulate press
+    // Encontra TouchableOpacity e simula o pressionamento
     const touchables = UNSAFE_queryAllByType(require('react-native').TouchableOpacity);
     expect(touchables.length).toBeGreaterThan(0);
     touchables[0].props.onPress();
@@ -51,7 +51,7 @@ describe('BaseScreen', () => {
     expect(UNSAFE_queryAllByType(require('./CurvedBackground').default).length).toBeGreaterThan(0);
   });
 
-  it('does not render CurvedBackground when showCurvedBackground is false', () => {
+  it('nao renderiza CurvedBackground quando showCurvedBackground é false', () => {
     const { UNSAFE_queryAllByType } = renderWithNav(
       <BaseScreen showCurvedBackground={false}>
         <Text>No Curve</Text>

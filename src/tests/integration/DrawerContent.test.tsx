@@ -1,4 +1,4 @@
-// Mock react-native-gesture-handler
+// Mock do react-native-gesture-handler
 jest.mock('react-native-gesture-handler', () => {
   const React = require('react');
   const createHandler = (name = 'Handler') =>
@@ -32,15 +32,24 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-// Mock react-native-reanimated
+// Mock do react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const Reanimated = require('react-native-reanimated/mock');
   Reanimated.default.call = () => {};
   return Reanimated;
 });
 
+// Mock dos ícones do expo para evitar carregamento assíncrono de fontes que geram warnings nos testes
+jest.mock('@expo/vector-icons', () => {
+  const React = require('react');
+  return {
+    Ionicons: (props: any) => React.createElement('Text', props, props.children || ''),
+  };
+});
+
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DrawerContent from '../../components/DrawerContent';
 import { AuthProvider } from '../../context/AuthContext';
 import { NavigationContainer } from '@react-navigation/native';
@@ -48,11 +57,20 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 const Stack = createStackNavigator();
 
-// Mock navigation and logout
+// Mock de navegação e logout
 const mockNavigate = jest.fn();
 const mockCloseDrawer = jest.fn();
 const mockReset = jest.fn();
 const mockLogout = jest.fn();
+
+const makeNav = (overrides: any = {}) => ({
+  navigate: mockNavigate,
+  closeDrawer: mockCloseDrawer,
+  reset: mockReset,
+  dispatch: jest.fn(),
+  addListener: jest.fn().mockImplementation(() => () => {}),
+  ...overrides,
+});
 
 jest.mock('../../context/AuthContext', () => {
   const actual = jest.requireActual('../../context/AuthContext');
@@ -69,6 +87,10 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       reset: mockReset,
+      dispatch: jest.fn(),
+      addListener: jest.fn().mockImplementation(() => {
+        return () => {};
+      }),
     }),
     useNavigationState: (cb: any) => cb({ routes: [{ name: 'MainApp', state: { index: 0 } }] }),
   };
@@ -79,7 +101,7 @@ describe('DrawerContent Integration', () => {
     jest.clearAllMocks();
   });
 
-  it('should render drawer content and handle actions', () => {
+  it('deve renderizar o conteúdo do drawer e lidar com ações', () => {
     const { getByText } = render(
       <NavigationContainer>
         <Stack.Navigator>
@@ -94,82 +116,64 @@ describe('DrawerContent Integration', () => {
         </Stack.Navigator>
       </NavigationContainer>
     );
-    // Verifica se renderiza algum texto esperado do drawer
-    expect(getByText('Sair')).toBeTruthy();
-    expect(getByText('Perfil')).toBeTruthy();
-    expect(getByText('Jornadas')).toBeTruthy();
-    expect(getByText('Histórico')).toBeTruthy();
-    expect(getByText('Recompensas')).toBeTruthy();
+  // Verifica se renderiza alguns textos esperados do drawer
+  expect(getByText('Sair')).toBeTruthy();
+  expect(getByText('Perfil')).toBeTruthy();
+  expect(getByText('Jornadas')).toBeTruthy();
   });
 
-  it('should navigate to Perfil when pressed', () => {
+  it('deve navegar para Perfil quando pressionado', () => {
     const { getByText } = render(
-      <AuthProvider>
-        <DrawerContent navigation={{
-          navigate: mockNavigate,
-          closeDrawer: mockCloseDrawer,
-        }} />
-      </AuthProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen name="DrawerContentTest" component={() => (
+            <AuthProvider>
+              <DrawerContent navigation={makeNav()} />
+            </AuthProvider>
+          )} />
+        </Stack.Navigator>
+      </NavigationContainer>
     );
-    fireEvent.press(getByText('Perfil'));
-    expect(mockNavigate).toHaveBeenCalledWith('MainApp', expect.objectContaining({ screen: expect.any(String), params: { screen: 'Perfil' } }));
-    expect(mockCloseDrawer).toHaveBeenCalled();
+  fireEvent.press(getByText('Perfil'));
+  // DrawerContent agora navega para a aba 'Perfil' (ProfileDrawerNavigator)
+  expect(mockNavigate).toHaveBeenCalledWith('Perfil');
+  expect(mockCloseDrawer).toHaveBeenCalled();
   });
 
-  it('should navigate to Jornadas when pressed', () => {
+  it('deve navegar para Jornadas quando pressionado', () => {
     const { getByText } = render(
-      <AuthProvider>
-        <DrawerContent navigation={{
-          navigate: mockNavigate,
-          closeDrawer: mockCloseDrawer,
-        }} />
-      </AuthProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen name="DrawerContentTest" component={() => (
+            <AuthProvider>
+              <DrawerContent navigation={makeNav()} />
+            </AuthProvider>
+          )} />
+        </Stack.Navigator>
+      </NavigationContainer>
     );
-    fireEvent.press(getByText('Jornadas'));
-    expect(mockNavigate).toHaveBeenCalledWith('MainApp', expect.objectContaining({ screen: expect.any(String), params: { screen: 'Jornadas' } }));
-    expect(mockCloseDrawer).toHaveBeenCalled();
+  fireEvent.press(getByText('Jornadas'));
+  // Jornadas é aberto dentro do drawer do Perfil então a aba do Perfil permanece ativa
+  expect(mockNavigate).toHaveBeenCalledWith('Perfil', { screen: 'Jornadas' });
+  expect(mockCloseDrawer).toHaveBeenCalled();
   });
+  
 
-  it('should navigate to Histórico when pressed', () => {
+  it('poderia chamar logout e reset navigation quando Sair é pressionado', () => {
     const { getByText } = render(
-      <AuthProvider>
-        <DrawerContent navigation={{
-          navigate: mockNavigate,
-          closeDrawer: mockCloseDrawer,
-        }} />
-      </AuthProvider>
-    );
-    fireEvent.press(getByText('Histórico'));
-    expect(mockNavigate).toHaveBeenCalledWith('MainApp', expect.objectContaining({ screen: expect.any(String), params: { screen: 'Histórico' } }));
-    expect(mockCloseDrawer).toHaveBeenCalled();
-  });
-
-  it('should navigate to Recompensas when pressed', () => {
-    const { getByText } = render(
-      <AuthProvider>
-        <DrawerContent navigation={{
-          navigate: mockNavigate,
-          closeDrawer: mockCloseDrawer,
-        }} />
-      </AuthProvider>
-    );
-    fireEvent.press(getByText('Recompensas'));
-    expect(mockNavigate).toHaveBeenCalledWith('MainApp', expect.objectContaining({ screen: expect.any(String), params: { screen: 'Recompensas' } }));
-    expect(mockCloseDrawer).toHaveBeenCalled();
-  });
-
-  it('should call logout and reset navigation when Sair is pressed', () => {
-    const { getByText } = render(
-      <AuthProvider>
-        <DrawerContent navigation={{
-          navigate: mockNavigate,
-          closeDrawer: mockCloseDrawer,
-          reset: mockReset,
-        }} />
-      </AuthProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen name="DrawerContentTest" component={() => (
+            <AuthProvider>
+              <DrawerContent navigation={makeNav({ reset: mockReset })} />
+            </AuthProvider>
+          )} />
+        </Stack.Navigator>
+      </NavigationContainer>
     );
     fireEvent.press(getByText('Sair'));
+    // logout() é chamado e o drawer é fechado; reset não é mais despachado a partir do drawer
     expect(mockLogout).toHaveBeenCalled();
-    expect(mockReset).toHaveBeenCalled();
+    expect(mockCloseDrawer).toHaveBeenCalled();
   });
 });

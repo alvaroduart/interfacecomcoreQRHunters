@@ -4,20 +4,20 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import ProfileScreen from '../../screens/ProfileScreen';
 
-// Jest allows variables prefixed with 'mock' in jest.mock factories
+// Jest allows variaveis prefixadas com 'mock' em jest.mock factories
 let mockChangePasswordResult: boolean | undefined = undefined;
 let mockDeleteAccountResult: boolean | undefined = undefined;
 jest.mock('../../core/factories', () => ({
   makeAuthUseCases: () => ({
     changePasswordUseCase: {
       execute: jest.fn(() => {
-        if (mockChangePasswordResult === undefined) return Promise.reject(new Error('Invalid old password or user not found'));
+        if (mockChangePasswordResult === undefined) return Promise.reject(new Error('Senha antiga inválida ou usuário não encontrado'));
         return Promise.resolve(mockChangePasswordResult);
       }),
     },
     deleteAccountUseCase: {
       execute: jest.fn(() => {
-        if (mockDeleteAccountResult === undefined) return Promise.reject(new Error('Delete failed'));
+        if (mockDeleteAccountResult === undefined) return Promise.reject(new Error('Falha ao deletar'));
         return Promise.resolve(mockDeleteAccountResult);
       }),
     },
@@ -49,7 +49,7 @@ jest.mock('../../context/AuthContext', () => {
 });
 
 describe('ProfileScreen Integration', () => {
-  it('should render user info and handle actions', async () => {
+  it('deve renderizar informações do usuário e lidar com ações', async () => {
     const { getByText, getByPlaceholderText } = render(
       <AuthProvider>
         <NavigationContainer>
@@ -64,7 +64,7 @@ describe('ProfileScreen Integration', () => {
     });
   });
 
-  it('should open drawer when menu button is pressed', async () => {
+  it('deve abrir o menu quando o botão de menu for pressionado', async () => {
     const { UNSAFE_queryAllByType } = render(
       <AuthProvider>
         <NavigationContainer>
@@ -72,14 +72,13 @@ describe('ProfileScreen Integration', () => {
         </NavigationContainer>
       </AuthProvider>
     );
-    // The first TouchableOpacity is the menu
+    // O primeiro TouchableOpacity é o menu
     const touchables = UNSAFE_queryAllByType(require('react-native').TouchableOpacity);
     expect(touchables.length).toBeGreaterThan(0);
-    fireEvent.press(touchables[0]);
-    // No assertion needed, just for coverage
+    fireEvent.press(touchables[0]);    
   });
 
-  it('should show error if passwords do not match', async () => {
+  it('deve mostrar um erro se as senhas não corresponderem', async () => {
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const { getByPlaceholderText, getByText } = render(
       <AuthProvider>
@@ -90,11 +89,10 @@ describe('ProfileScreen Integration', () => {
     );
     fireEvent.changeText(getByPlaceholderText('Nova senha'), 'abc123');
     fireEvent.changeText(getByPlaceholderText('Confirmar nova senha'), 'different');
-    fireEvent.press(getByText('Atualizar senha'));
-    // No assertion needed, just for coverage
+    fireEvent.press(getByText('Atualizar senha'));    
   });
 
-  it('should call handleDeleteAccount and show alert', async () => {
+  it('deve chamar handleDeleteAccount e mostrar alerta', async () => {
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const { getByText } = render(
       <AuthProvider>
@@ -103,12 +101,11 @@ describe('ProfileScreen Integration', () => {
         </NavigationContainer>
       </AuthProvider>
     );
-    fireEvent.press(getByText('Deletar perfil'));
-    // No assertion needed, just for coverage
+    fireEvent.press(getByText('Deletar perfil'));    
   });
 
 
-  it('should show success alert when password is updated', async () => {
+  it('deve mostrar um alerta de sucesso quando a senha for atualizada', async () => {
     mockChangePasswordResult = true;
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const { getByPlaceholderText, getByText } = render(
@@ -125,7 +122,7 @@ describe('ProfileScreen Integration', () => {
   });
 
 
-  it('should show error alert when password update fails', async () => {
+  it('deve mostrar um alerta de erro quando a atualização da senha falhar', async () => {
     mockChangePasswordResult = false;
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const { getByPlaceholderText, getByText } = render(
@@ -142,7 +139,7 @@ describe('ProfileScreen Integration', () => {
   });
 
 
-  it('should show error alert when delete account fails', async () => {
+  it('deve mostrar um alerta de erro quando a exclusão da conta falhar', async () => {
     mockDeleteAccountResult = false;
     jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     const { getByText } = render(

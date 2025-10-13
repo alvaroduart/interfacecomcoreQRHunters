@@ -1,7 +1,7 @@
 export class Code {
     private constructor(readonly value: string) {
         if (!Code.isValid(value)) {
-            throw new Error("Invalid code. Code must be a non-empty string.");
+            throw new Error("Código inválido. O código deve ser uma string não vazia.");
         }
     }
 

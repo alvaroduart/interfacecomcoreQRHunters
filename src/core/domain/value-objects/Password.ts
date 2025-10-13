@@ -1,7 +1,7 @@
 export class Password {
     private constructor(readonly value: string) {
         if (!Password.isValid(value)) {
-            throw new Error("Invalid password. Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
+            throw new Error("Senha inválida. A senha deve ter pelo menos 8 caracteres, conter uma letra maiúscula, uma letra minúscula, um número e um caractere especial.");
         }
     }
 
@@ -10,7 +10,7 @@ export class Password {
     }
 
     static isValid(password: string): boolean {
-        // At least 8 characters, one uppercase, one lowercase, one number, one special character
+        //com 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"|,.<>\/?]).{8,}$/;
         return passwordRegex.test(password);
     }

@@ -8,8 +8,8 @@ describe('Objeto de Valor: Location', () => {
   });
 
   it('deve lançar um erro para uma localização inválida', () => {
-    expect(() => Location.create('')).toThrow('Invalid location. Location must be a non-empty string.');
-    expect(() => Location.create('  ')).toThrow('Invalid location. Location must be a non-empty string.');
+  expect(() => Location.create('')).toThrow('Local inválido. O local deve ser uma string não vazia.');
+  expect(() => Location.create('  ')).toThrow('Local inválido. O local deve ser uma string não vazia.');
   });
 
   it('deve comparar corretamente dois objetos de localização', () => {

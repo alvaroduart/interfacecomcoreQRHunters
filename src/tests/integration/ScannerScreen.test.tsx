@@ -5,7 +5,7 @@ import ScannerScreen from '../../screens/ScannerScreen';
 import { AuthProvider } from '../../context/AuthContext';
 
 describe('ScannerScreen Integration', () => {
-  it('should render scanner and simulate scan', async () => {
+  it('deve renderizar o scanner e simular a digitalização', async () => {
     const { getByText } = render(
       <AuthProvider>
         <NavigationContainer>
@@ -20,7 +20,7 @@ describe('ScannerScreen Integration', () => {
     // Simular clique no botão de scan se existir
   });
 
-  it('should open drawer when menu button is pressed', () => {
+  it('deve abrir o menu quando o botão de menu for pressionado', () => {
     const { UNSAFE_queryAllByType } = render(
       <AuthProvider>
         <NavigationContainer>
@@ -28,14 +28,14 @@ describe('ScannerScreen Integration', () => {
         </NavigationContainer>
       </AuthProvider>
     );
-    // The first TouchableOpacity is the menu
+    // O primeiro TouchableOpacity é o menu
     const touchables = UNSAFE_queryAllByType(require('react-native').TouchableOpacity);
     expect(touchables.length).toBeGreaterThan(0);
-    // Simulate menu press (openDrawer)
+    // Simular pressão no menu (openDrawer)
     touchables[0].props.onPress();
   });
 
-  it('should simulate scan and show alert', () => {
+  it('deve simular a digitalização e mostrar um alerta', () => {
     const alertSpy = jest.spyOn(require('react-native').Alert, 'alert').mockImplementation(() => {});
     const { getByText } = render(
       <AuthProvider>

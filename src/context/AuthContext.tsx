@@ -30,6 +30,8 @@ export const AuthProvider: React.FC<{children: ReactNode, initialUser?: User | n
   };
 
   const logout = () => {
+    // Apenas limpar o usuário; a navegação baseada em estado (StackNavigator)
+    // vai automaticamente exibir a tela de Login quando `user` for null.
     setUser(null);
   };
 

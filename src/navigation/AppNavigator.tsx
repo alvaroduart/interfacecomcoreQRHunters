@@ -2,19 +2,14 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 
 import { useAuth } from '../context/AuthContext';
-
-import SplashScreen from '../screens/SplashScreen';
 import StackNavigator from './StackNavigator';
-import TabNavigator from './TabNavigator';
-import DrawerNavigator from './DrawerNavigator';
+import { navigationRef } from './RootNavigation';
 
-// Tipagem de parâmetros pode ser movida para um arquivo types se necessário
-
-// Navegadores separados agora estão em arquivos próprios
-
+// Componente principal de navegação. O StackNavigator escolhe entre telas de
+// autenticação e o aplicativo principal conforme o estado de auth.
 const AppNavigator = () => {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <StackNavigator />
     </NavigationContainer>
   );

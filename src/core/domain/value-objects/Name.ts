@@ -1,7 +1,7 @@
 export class Name {
     private constructor(readonly value: string) {
         if (!Name.isValid(value)) {
-            throw new Error("Invalid name. Name must be between 2 and 50 characters and contain only letters and spaces.");
+            throw new Error("Nome inválido. O nome deve ter entre 2 e 50 caracteres e conter apenas letras e espaços.");
         }
     }
 

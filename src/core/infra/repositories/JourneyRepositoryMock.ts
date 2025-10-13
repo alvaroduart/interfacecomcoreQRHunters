@@ -55,7 +55,7 @@ export class JourneyRepositoryMock implements JourneyRepository {
       throw new Error('Journey not found');
     }
     const journey = this.journeys[journeyIndex];
-    // Assuming starting a journey means resetting progress
+    //  assume começando uma jornada significa reiniciar o progresso
     const updatedJourney = Journey.create(
       journey.id,
       journey.name,

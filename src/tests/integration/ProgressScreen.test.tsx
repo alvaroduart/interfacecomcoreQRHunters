@@ -5,7 +5,7 @@ import ProgressScreen from '../../screens/ProgressScreen';
 import { AuthProvider } from '../../context/AuthContext';
 
 describe('ProgressScreen Integration', () => {
-  it('should render progress checkpoints', async () => {
+  it('deve renderizar os checkpoints de progresso', async () => {
     const { getByText } = render(
       <AuthProvider>
         <NavigationContainer>

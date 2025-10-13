@@ -8,8 +8,8 @@ describe('Objeto de Valor: Longitude', () => {
   });
 
   it('deve lançar um erro para uma longitude inválida', () => {
-    expect(() => Longitude.create(-181)).toThrow('Invalid longitude. Longitude must be between -180 and 180.');
-    expect(() => Longitude.create(181)).toThrow('Invalid longitude. Longitude must be between -180 and 180.');
+  expect(() => Longitude.create(-181)).toThrow('Longitude inválida. A longitude deve estar entre -180 e 180.');
+  expect(() => Longitude.create(181)).toThrow('Longitude inválida. A longitude deve estar entre -180 e 180.');
   });
 
   it('deve comparar corretamente dois objetos de longitude', () => {

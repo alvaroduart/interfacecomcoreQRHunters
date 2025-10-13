@@ -15,7 +15,7 @@ import BaseScreen from '../components/BaseScreen';
 import theme from '../theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/types';
 import {makeAuthUseCases} from '../core/factories/AuthFactory'
 import { useAuth } from '../context/AuthContext';
 import { Name } from '../core/domain/value-objects/Name';
@@ -49,9 +49,10 @@ const RegisterScreen = () => {
       Alert.alert(
         'Sucesso',
         'Cadastro realizado com sucesso!',
-        [{ text: 'OK', onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] }) }]
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
       );
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       Alert.alert('Erro', error.message);
     }
   };

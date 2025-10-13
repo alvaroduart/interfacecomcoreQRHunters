@@ -5,10 +5,10 @@ import {
   StyleSheet, 
   Image, 
   TouchableOpacity, 
-  SafeAreaView,
   TextInput,
   Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,8 +37,8 @@ const ProfileScreen = () => {
             const success = await deleteAccountUseCase.execute({ userId: user.id });
             if (success) {
               Alert.alert('Conta deletada', 'Seu perfil foi deletado com sucesso.');
+              // Limpa estado de auth; o StackNavigator principal irá mostrar a tela de Login
               logout();
-              navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
             } else {
               Alert.alert('Erro', 'Não foi possível deletar o perfil.');
             }
@@ -63,13 +63,19 @@ const ProfileScreen = () => {
     if (user) {
       const { changePasswordUseCase } = makeAuthUseCases();
       const oldPassword = typeof user.password === 'string' ? user.password : user.password.value;
-      const success = await changePasswordUseCase.execute({ userId: user.id, oldPassword, newPassword });
-      if (success) {
-        Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
-        logout();
-        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-      } else {
-        Alert.alert('Erro', 'Não foi possível atualizar a senha.');
+      try {
+        const success = await changePasswordUseCase.execute({ userId: user.id, oldPassword, newPassword });
+        if (success) {
+          Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
+          // Limpa estado de auth; o StackNavigator principal irá mostrar a tela de Login
+          logout();
+        } else {
+          Alert.alert('Erro', 'Não foi possível atualizar a senha.');
+        }
+      } catch (err: any) {
+        // Exibir mensagem de erro retornada pelo repositório/use-case, se disponível
+        const message = err?.message || 'Não foi possível atualizar a senha.';
+        Alert.alert('Erro', message);
       }
     }
   };
@@ -163,7 +169,7 @@ const styles = StyleSheet.create({
      alignItems: 'center',
      justifyContent: 'space-between',
      backgroundColor: theme.colors.primary,
-     paddingTop: 50,
+     paddingTop: 10,
      paddingBottom: 16,
      paddingHorizontal: 12,
      elevation: 4,

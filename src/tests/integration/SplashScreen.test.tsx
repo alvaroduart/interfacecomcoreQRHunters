@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import SplashScreen from '../../screens/SplashScreen';
 
 describe('SplashScreen Integration', () => {
-  it('should render splash screen', async () => {
+  it('deve renderizar a tela de splash', async () => {
     const { getByText } = render(
       <NavigationContainer>
         <SplashScreen navigation={{ navigate: jest.fn() }} />

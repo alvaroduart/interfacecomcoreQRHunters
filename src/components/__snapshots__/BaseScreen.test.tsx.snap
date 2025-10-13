@@ -1,7 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BaseScreen applies style and backgroundColor props 1`] = `
-<RCTSafeAreaView
+<RNCSafeAreaView
+  edges={
+    {
+      "bottom": "additive",
+      "left": "additive",
+      "right": "additive",
+      "top": "additive",
+    }
+  }
   style={
     [
       {
@@ -49,5 +57,5 @@ exports[`BaseScreen applies style and backgroundColor props 1`] = `
       ]
     }
   />
-</RCTSafeAreaView>
+</RNCSafeAreaView>
 `;

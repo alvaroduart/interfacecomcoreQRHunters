@@ -48,7 +48,7 @@ import { AuthProvider } from '../../context/AuthContext';
 
 const Stack = createStackNavigator();
 describe('RouteScreen Integration', () => {
-  it('should render route details', async () => {
+  it('deve renderizar os detalhes da rota', async () => {
     const { getByText } = render(
       <AuthProvider>
         <NavigationContainer>

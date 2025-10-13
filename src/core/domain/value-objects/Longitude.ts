@@ -1,7 +1,7 @@
 export class Longitude {
     private constructor(readonly value: number) {
         if (!Longitude.isValid(value)) {
-            throw new Error("Invalid longitude. Longitude must be between -180 and 180.");
+            throw new Error("Longitude inválida. A longitude deve estar entre -180 e 180.");
         }
     }
 

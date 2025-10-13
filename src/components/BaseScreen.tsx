@@ -1,11 +1,12 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, SafeAreaView, ViewStyle, StatusBar, DimensionValue, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ViewStyle, StatusBar, DimensionValue, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import CurvedBackground from '../components/CurvedBackground';
 import theme from '../theme/theme';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/types';
 
 interface BaseScreenProps {
   children: ReactNode;
@@ -22,10 +23,7 @@ interface BaseScreenProps {
   style?: ViewStyle;
 }
 
-/**
- * Componente base para todas as telas do aplicativo,
- * garantindo consistência visual em todas as telas.
- */
+// Componente base para telas — fornece header/back e fundo curvo configurável
 const BaseScreen: React.FC<BaseScreenProps> = ({
   children,
   backgroundColor = theme.colors.background,

@@ -15,7 +15,7 @@ import BaseScreen from '../components/BaseScreen';
 import theme from '../theme/theme';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/types';
 import {makeAuthUseCases} from '../core/factories/AuthFactory';
 import { useAuth } from '../context/AuthContext';
 import { Email } from '../core/domain/value-objects/Email';
@@ -41,7 +41,8 @@ const LoginScreen = () => {
     try {
   await login(email, password);
       // Ao autenticar, o contexto será atualizado e o StackNavigator redireciona automaticamente
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error;
       Alert.alert('Erro', error.message);
     }
   };

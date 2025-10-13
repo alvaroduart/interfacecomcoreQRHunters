@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/types';
 import { makeJourneyUseCases } from '../core/factories';
 import theme from '../theme/theme';
 import { Journey } from '../core/domain/entities/Journey';
 
 const JourneysScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [journeys, setJourneys] = useState<Journey[]>([]);
 
   useEffect(() => {
@@ -19,9 +22,7 @@ const JourneysScreen = () => {
     fetchJourneys();
   }, []);
 
-  const openDrawer = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  };
+  // Drawer intentionalmente não disponível nesta tela (drawer apenas no Profile)
 
   const renderItem = ({ item }: { item: Journey }) => (
     <View style={styles.card}>
@@ -42,8 +43,33 @@ const JourneysScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
-          <Ionicons name="menu" size={28} color="#fff" />
+        <TouchableOpacity
+          onPress={() => {            
+            try {
+              navigation.goBack();
+              return;
+            } catch (e) {              
+            }
+            
+            try {
+              const parent = (navigation as any).getParent?.();
+              if (parent && typeof parent.navigate === 'function') {
+                parent.navigate('Perfil');
+                return;
+              }
+            } catch (e) {              
+            }
+
+            
+            try {
+              (navigation as any).navigate('Perfil');
+            } catch (e) {
+              
+            }
+          }}
+          style={styles.menuButton}
+        >
+          <Ionicons name="chevron-back" size={28} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Jornadas</Text>
         <View style={{ width: 40 }} />
@@ -70,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.primary,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     paddingHorizontal: 12,
     elevation: 4,

@@ -4,17 +4,17 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity,
-  ScrollView,
-  SafeAreaView
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
 import { makeProgressUseCases } from '../core/factories';
 import { QRCode } from '../core/domain/entities/QRCode';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ProgressScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -29,11 +29,9 @@ const ProgressScreen = () => {
 
     fetchProgress();
   }, []);
-  
-  const openDrawer = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  };
-  
+
+  // Drawer intentionalmente não disponível nesta tela (drawer apenas no Profile)
+
   const renderCheckpointItem = (item: QRCode) => {
     return (
       <View key={item.id} style={styles.checkpointItem}>
@@ -65,11 +63,9 @@ const ProgressScreen = () => {
       
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
-          <Ionicons name="menu" size={28} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
         <Text style={styles.headerTitle}>Progresso</Text>
-        <View style={{width: 40}} /> {/* Espaço para manter o cabeçalho centralizado */}
+        <View style={{width: 40}} />
       </View>
       
       <ScrollView style={styles.content}>
@@ -89,7 +85,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.primary,
-    paddingTop: 50, // Ajuste para status bar
+    paddingTop: 10, 
     paddingBottom: 16,
     paddingHorizontal: 12,
     elevation: 4,

@@ -1,7 +1,7 @@
 export class Location {
     private constructor(readonly value: string) {
         if (!Location.isValid(value)) {
-            throw new Error("Invalid location. Location must be a non-empty string.");
+            throw new Error("Local inválido. O local deve ser uma string não vazia.");
         }
     }
 

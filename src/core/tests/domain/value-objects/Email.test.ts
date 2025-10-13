@@ -8,9 +8,9 @@ describe('Objeto de Valor: Email', () => {
   });
 
   it('deve lançar um erro para um email inválido', () => {
-    expect(() => Email.create('invalid-email')).toThrow('Invalid email address');
-    expect(() => Email.create('test@')).toThrow('Invalid email address');
-    expect(() => Email.create('@example.com')).toThrow('Invalid email address');
+  expect(() => Email.create('invalid-email')).toThrow('Endereço de e-mail inválido');
+  expect(() => Email.create('test@')).toThrow('Endereço de e-mail inválido');
+  expect(() => Email.create('@example.com')).toThrow('Endereço de e-mail inválido');
   });
 
   it('deve comparar corretamente dois objetos de email', () => {

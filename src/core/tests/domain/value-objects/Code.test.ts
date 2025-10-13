@@ -8,8 +8,8 @@ describe('Objeto de Valor: Code', () => {
   });
 
   it('deve lançar um erro para um código inválido', () => {
-    expect(() => Code.create('')).toThrow('Invalid code. Code must be a non-empty string.');
-    expect(() => Code.create('  ')).toThrow('Invalid code. Code must be a non-empty string.');
+  expect(() => Code.create('')).toThrow('Código inválido. O código deve ser uma string não vazia.');
+  expect(() => Code.create('  ')).toThrow('Código inválido. O código deve ser uma string não vazia.');
   });
 
   it('deve comparar corretamente dois objetos de código', () => {

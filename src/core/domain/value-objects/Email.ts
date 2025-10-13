@@ -1,7 +1,7 @@
 export class Email {
     private constructor(readonly value: string) {
         if (!Email.isValid(value)) {
-            throw new Error("Invalid email address");
+            throw new Error("Endereço de e-mail inválido");
         }
     }
 
@@ -10,7 +10,7 @@ export class Email {
     }
 
     static isValid(email: string): boolean {
-        // Simpler email regex to avoid issues with test values
+        // regex simples para validação de e-mail
         const emailRegex = /\S+@\S+\.\S+/;
         return emailRegex.test(email);
     }

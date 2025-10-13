@@ -22,13 +22,13 @@ export class AuthRepositoryMock implements AuthRepository {
     if (user) {
       return user;
     }
-    throw new Error('Invalid credentials');
+  throw new Error('Credenciais inválidas');
   }
 
   async register(username: Name, email: Email, password: Password): Promise<User> {
     const userExists = this.users.some(u => u.email.equals(email));
     if (userExists) {
-      throw new Error('User already exists');
+  throw new Error('Usuário já existe');
     }
     const newUser = User.create(String(this.users.length + 1), username, email, password);
     this.users.push(newUser);
@@ -43,7 +43,7 @@ export class AuthRepositoryMock implements AuthRepository {
       this.users[userIndex] = updatedUser;
       return updatedUser;
     }
-    throw new Error('User not found');
+  throw new Error('Usuário não encontrado');
   }
 
   async changePassword(userId: string, oldPassword: Password, newPassword: Password): Promise<boolean> {
@@ -54,7 +54,7 @@ export class AuthRepositoryMock implements AuthRepository {
       this.users[userIndex] = updatedUser;
       return true;
     }
-    throw new Error('Invalid old password or user not found');
+  throw new Error('Senha antiga inválida ou usuário não encontrado');
   }
 
   async deleteAccount(userId: string): Promise<boolean> {

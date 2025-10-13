@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">72.72% </span>
+                <span class="strong">75% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>16/22</span>
+                <span class='fraction'>15/20</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.85% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/7</span>
+                <span class='fraction'>3/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76.19% </span>
+                <span class="strong">78.94% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/21</span>
+                <span class='fraction'>15/19</span>
             </div>
         
             
@@ -282,11 +282,7 @@
 <a name='L217'></a><a href='#L217'>217</a>
 <a name='L218'></a><a href='#L218'>218</a>
 <a name='L219'></a><a href='#L219'>219</a>
-<a name='L220'></a><a href='#L220'>220</a>
-<a name='L221'></a><a href='#L221'>221</a>
-<a name='L222'></a><a href='#L222'>222</a>
-<a name='L223'></a><a href='#L223'>223</a>
-<a name='L224'></a><a href='#L224'>224</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L220'></a><a href='#L220'>220</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -328,8 +324,6 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -338,8 +332,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -515,14 +507,14 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity,
-  SafeAreaView,
   Image
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useNavigation, DrawerActions, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
 &nbsp;
 import { makeJourneyUseCases } from '../core/factories';
@@ -550,11 +542,9 @@ const RouteScreen = () =&gt; {
 &nbsp;
     fetchJourney();
   }, [journeyId]);
-  
-  const openDrawer = <span class="fstat-no" title="function not covered" >()</span> =&gt; {
-<span class="cstat-no" title="statement not covered" >    navigation.dispatch(DrawerActions.openDrawer());</span>
-  };
-  
+&nbsp;
+  // Drawer intentionalmente não disponível nesta tela (drawer apenas no Profile)
+&nbsp;
   const handleFinishRoute = <span class="fstat-no" title="function not covered" >()</span> =&gt; {
     // Lógica para finalizar o percurso
 <span class="cstat-no" title="statement not covered" >    navigation.navigate('Scanner');</span>
@@ -566,9 +556,7 @@ const RouteScreen = () =&gt; {
       
       {/* Cabeçalho */}
       &lt;View style={styles.header}&gt;
-        &lt;TouchableOpacity onPress={openDrawer} style={styles.menuButton}&gt;
-          &lt;Ionicons name="menu" size={28} color="#fff" /&gt;
-        &lt;/TouchableOpacity&gt;
+        &lt;View style={{ width: 40 }} /&gt;
         &lt;Text style={styles.headerTitle}&gt;Percurso&lt;/Text&gt;
         &lt;View style={{ width: 40 }} /&gt;
       &lt;/View&gt;
@@ -624,7 +612,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.primary,
-    paddingTop: 50, // Ajuste para status bar
+    paddingTop: 10, // Ajuste para status bar
     paddingBottom: 16,
     paddingHorizontal: 12,
     elevation: 4,
@@ -739,7 +727,7 @@ export default RouteScreen;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-10T20:51:38.401Z
+                at 2025-10-13T20:36:05.620Z
             </div>
         <script src="../prettify.js"></script>
         <script>
