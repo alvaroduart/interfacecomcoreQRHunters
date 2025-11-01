@@ -5,9 +5,13 @@ import { LoginUseCase } from '../domain/use-cases/LoginUseCase';
 import { RegisterUseCase } from '../domain/use-cases/RegisterUseCase';
 import { UpdateProfileUseCase } from '../domain/use-cases/UpdateProfileUseCase';
 import { AuthRepositoryMock } from '../infra/repositories/AuthRepositoryMock';
+import { AuthRepositorySupabase } from '../infra/repositories/AuthRepositorySupabase';
+import { config } from '../config';
 
 export function makeAuthUseCases() {
-  const authRepository: AuthRepository = AuthRepositoryMock.getInstance();
+  const authRepository: AuthRepository = config.repository === 'supabase'
+    ? AuthRepositorySupabase.getInstance()
+    : AuthRepositoryMock.getInstance();
 
   const changePasswordUseCase = new ChangePasswordUseCase(authRepository);
   const deleteAccountUseCase = new DeleteAccountUseCase(authRepository);

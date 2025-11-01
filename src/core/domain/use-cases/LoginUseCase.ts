@@ -13,7 +13,7 @@ export class LoginUseCase {
     const { email, password } = params;
 
     const emailVO = Email.create(email);
-    const passwordVO = Password.create(password);
+    const passwordVO = Password.createForAuth(password); // Não valida formato no login
 
     return this.authRepository.login(emailVO, passwordVO);
   }

@@ -31,7 +31,27 @@ const RegisterScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswordHint, setShowPasswordHint] = useState(false);
   const Auth = makeAuthUseCases()
+
+  const isPasswordValid = () => {
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':\"|,.<>\/?]/.test(password);
+    
+    return {
+      hasMinLength,
+      hasUpperCase,
+      hasLowerCase,
+      hasNumber,
+      hasSpecialChar,
+      isValid: hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar
+    };
+  };
+
+  const passwordValidation = isPasswordValid();
 
   const handleRegister = async () => {
     if (!username || !email || !password || !confirmPassword) {
@@ -96,8 +116,29 @@ const RegisterScreen = () => {
             placeholderTextColor={theme.colors.text.secondary}
             value={password}
             onChangeText={setPassword}
+            onFocus={() => setShowPasswordHint(true)}
             secureTextEntry
           />
+          {showPasswordHint && password.length > 0 && (
+            <View style={styles.passwordHintContainer}>
+              <Text style={styles.passwordHintTitle}>A senha deve conter:</Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasMinLength && styles.passwordHintValid]}>
+                {passwordValidation.hasMinLength ? '✓' : '✗'} Mínimo de 8 caracteres
+              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasUpperCase && styles.passwordHintValid]}>
+                {passwordValidation.hasUpperCase ? '✓' : '✗'} Uma letra maiúscula
+              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasLowerCase && styles.passwordHintValid]}>
+                {passwordValidation.hasLowerCase ? '✓' : '✗'} Uma letra minúscula
+              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasNumber && styles.passwordHintValid]}>
+                {passwordValidation.hasNumber ? '✓' : '✗'} Um número
+              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasSpecialChar && styles.passwordHintValid]}>
+                {passwordValidation.hasSpecialChar ? '✓' : '✗'} Um caractere especial (!@#$%^&* etc.)
+              </Text>
+            </View>
+          )}
           <TextInput
             style={styles.input}
             placeholder="Confirmar senha"
@@ -200,6 +241,29 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: 'bold',
     textDecorationLine: 'underline',
+  },
+  passwordHintContainer: {
+    backgroundColor: '#FFF9E6',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+  },
+  passwordHintTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginBottom: 8,
+  },
+  passwordHint: {
+    fontSize: 12,
+    color: '#E57373',
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  passwordHintValid: {
+    color: '#66BB6A',
   },
 });
 

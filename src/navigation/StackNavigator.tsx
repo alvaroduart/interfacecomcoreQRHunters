@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import SplashScreen from '../screens/SplashScreen';
+import QuestionScreen from '../screens/QuestionScreen';
 import TabNavigator from './TabNavigator';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,7 +30,10 @@ export default function StackNavigator() {
           <Stack.Screen name="Register" component={RegisterScreen} />
         </>
       ) : (
-        <Stack.Screen name="MainApp" component={TabNavigator} />
+        <>
+          <Stack.Screen name="MainApp" component={TabNavigator} />
+          <Stack.Screen name="Question" component={QuestionScreen} />
+        </>
       )}
     </Stack.Navigator>
   );
