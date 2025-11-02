@@ -87,7 +87,8 @@ const RouteScreen = () => {
         { text: 'Cancelar', style: 'cancel' },
         { 
           text: 'Finalizar', 
-          onPress: () => navigation.navigate('Home')
+          // Navega para a aba 'Progresso' dentro do MainApp (TabNavigator)
+          onPress: () => navigation.navigate('MainApp', { screen: 'Progresso' })
         }
       ]
     );
