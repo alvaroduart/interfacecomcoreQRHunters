@@ -47,6 +47,7 @@ const ProfileScreen = () => {
       ]
     );
   };
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
@@ -55,6 +56,11 @@ const ProfileScreen = () => {
   };
   
   const handleUpdatePassword = async () => {
+    if (!currentPassword) {
+      Alert.alert('Erro', 'Digite sua senha atual');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       Alert.alert('Erro', 'As senhas não coincidem');
       return;
@@ -62,11 +68,17 @@ const ProfileScreen = () => {
 
     if (user) {
       const { changePasswordUseCase } = makeAuthUseCases();
-      const oldPassword = typeof user.password === 'string' ? user.password : user.password.value;
       try {
-        const success = await changePasswordUseCase.execute({ userId: user.id, oldPassword, newPassword });
+        const success = await changePasswordUseCase.execute({ 
+          userId: user.id, 
+          oldPassword: currentPassword, 
+          newPassword 
+        });
         if (success) {
           Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
           // Limpa estado de auth; o StackNavigator principal irá mostrar a tela de Login
           logout();
         } else {
@@ -110,6 +122,14 @@ const ProfileScreen = () => {
       {/* Área de configurações */}
           <View style={styles.settingsContainer}>
             <Text style={styles.sectionTitle}>Alterar senha</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Senha atual"
+              placeholderTextColor={theme.colors.text.secondary}
+              secureTextEntry
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+            />
             <TextInput
               style={styles.input}
               placeholder="Nova senha"

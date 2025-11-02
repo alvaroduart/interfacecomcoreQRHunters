@@ -1,7 +1,7 @@
 export class Password {
     private constructor(readonly value: string, skipValidation: boolean = false) {
         if (!skipValidation && !Password.isValid(value)) {
-            throw new Error("Senha inválida. A senha deve ter pelo menos 8 caracteres, conter uma letra maiúscula, uma letra minúscula, um número e um caractere especial.");
+            throw new Error("Senha inválida. A senha deve ter pelo menos 8 caracteres, conter uma letra maiúscula, uma letra minúscula e um número.");
         }
     }
 
@@ -15,8 +15,9 @@ export class Password {
     }
 
     static isValid(password: string): boolean {
-        //com 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um caractere especial
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"|,.<>\/?]).{8,}$/;
+        // Mínimo 8 caracteres, uma letra maiúscula, uma letra minúscula e um número
+        // Caracteres especiais são opcionais agora
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
         return passwordRegex.test(password);
     }
 

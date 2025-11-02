@@ -112,35 +112,50 @@ export class AuthRepositorySupabase implements AuthRepository {
 
   async changePassword(userId: string, currentPassword: Password, newPassword: Password): Promise<boolean> {
     try {
+      console.log('[AuthRepositorySupabase] Iniciando changePassword');
+      console.log('[AuthRepositorySupabase] userId:', userId);
+      console.log('[AuthRepositorySupabase] currentPassword:', currentPassword.value);
+      console.log('[AuthRepositorySupabase] newPassword:', newPassword.value);
+
       // Supabase não verifica a senha atual, então fazemos um login primeiro
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
+      console.log('[AuthRepositorySupabase] getUser error:', userError);
+      console.log('[AuthRepositorySupabase] userData.user?.email:', userData.user?.email);
+
       if (userError || !userData.user?.email) {
         throw new Error('Usuário não autenticado');
       }
 
       // Verificar senha atual fazendo login
+      console.log('[AuthRepositorySupabase] Tentando fazer login com a senha atual');
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: userData.user.email,
         password: currentPassword.value,
       });
+
+      console.log('[AuthRepositorySupabase] signInError:', signInError);
 
       if (signInError) {
         throw new Error('Senha atual incorreta');
       }
 
       // Atualizar para nova senha
+      console.log('[AuthRepositorySupabase] Atualizando para nova senha');
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword.value,
       });
+
+      console.log('[AuthRepositorySupabase] updateError:', updateError);
 
       if (updateError) {
         throw new Error(updateError.message);
       }
 
+      console.log('[AuthRepositorySupabase] Senha alterada com sucesso');
       return true;
     } catch (error: any) {
-      console.error('Erro ao trocar senha:', error);
+      console.error('[AuthRepositorySupabase] Erro ao trocar senha:', error);
       throw new Error(error.message || 'Erro ao trocar senha');
     }
   }

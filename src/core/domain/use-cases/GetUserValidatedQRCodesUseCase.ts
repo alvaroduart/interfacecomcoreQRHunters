@@ -16,7 +16,6 @@ export class GetUserValidatedQRCodesUseCase {
   async execute(params: { userId: string }): Promise<ValidatedQRCode[]> {
     const validations = await this.qrcodeRepository.getUserValidations(params.userId);
 
-    console.log('GetUserValidatedQRCodesUseCase - validações recebidas:', validations.length);
     if (validations.length > 0) {
       console.log('GetUserValidatedQRCodesUseCase - Primeira validação:', JSON.stringify(validations[0], null, 2));
     }
