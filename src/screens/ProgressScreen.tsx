@@ -15,24 +15,35 @@ import theme from '../theme/theme';
 import { makeProgressUseCases } from '../core/factories';
 import { QRCode } from '../core/domain/entities/QRCode';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
 
 const ProgressScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { user } = useAuth();
   const [checkpoints, setCheckpoints] = useState<QRCode[]>([]);
 
   useEffect(() => {
     const fetchProgress = async () => {
+      if (!user) {
+        console.log('[ProgressScreen] Usuário não está logado');
+        return;
+      }
+
+      console.log('[ProgressScreen] Buscando progresso para userId:', user.id);
       const { getUserProgressUseCase } = makeProgressUseCases();
-      const progress = await getUserProgressUseCase.execute({ userId: '1' });
+      const progress = await getUserProgressUseCase.execute({ userId: user.id });
+      console.log('[ProgressScreen] Progresso recebido:', progress.length, 'checkpoints');
+      console.log('[ProgressScreen] Dados completos:', JSON.stringify(progress, null, 2));
       setCheckpoints(progress);
     };
 
     fetchProgress();
-  }, []);
+  }, [user]);
 
   // Drawer intentionalmente não disponível nesta tela (drawer apenas no Profile)
 
   const renderCheckpointItem = (item: QRCode) => {
+    console.log('[ProgressScreen] Renderizando checkpoint:', item.id, item.location.value);
     return (
       <View key={item.id} style={styles.checkpointItem}>
         <View style={styles.checkpointInfo}>
@@ -51,7 +62,11 @@ const ProgressScreen = () => {
         
         <View style={styles.checkpointDetails}>
           <Text style={styles.locationText}>{item.location.value}</Text>
-          {item.scannedAt && <Text style={styles.timeText}>{item.scannedAt.toLocaleTimeString()}</Text>}
+          {item.scannedAt && (
+            <Text style={styles.timeText}>
+              {new Date(item.scannedAt).toLocaleTimeString()}
+            </Text>
+          )}
         </View>
       </View>
     );
@@ -69,7 +84,13 @@ const ProgressScreen = () => {
       </View>
       
       <ScrollView style={styles.content}>
-        {checkpoints.map(item => renderCheckpointItem(item))}
+        {checkpoints.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Nenhum checkpoint validado ainda</Text>
+          </View>
+        ) : (
+          checkpoints.map(item => renderCheckpointItem(item))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -154,6 +175,16 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.small,
     color: '#ccc',
     fontWeight: theme.fontWeights.medium,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    fontSize: theme.fontSizes.regular,
+    color: '#666',
   },
 });
 
