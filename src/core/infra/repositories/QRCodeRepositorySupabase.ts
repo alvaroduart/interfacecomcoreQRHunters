@@ -30,6 +30,8 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
 
   async getQRCodeDetails(id: string): Promise<QRCode | undefined> {
     try {
+      console.log('QRCodeRepositorySupabase.getQRCodeDetails - buscando ID:', id);
+      
       // Buscar QR Code com pergunta e respostas
       const { data: qrcodeData, error: qrcodeError } = await supabase
         .from('qrcodes')
@@ -49,10 +51,11 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
         .single();
 
       if (qrcodeError || !qrcodeData) {
-        console.error('Erro ao buscar QR Code:', qrcodeError);
+        console.error('Erro ao obter detalhes do QR Code:', qrcodeError);
         return undefined;
       }
 
+      console.log('Detalhes do QR Code encontrado:', { id: qrcodeData.id, code: qrcodeData.code });
       return this.mapToQRCodeEntity(qrcodeData);
     } catch (error) {
       console.error('Erro ao obter detalhes do QR Code:', error);
@@ -62,7 +65,10 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
 
   async getQRCodeByCode(code: string): Promise<QRCode | undefined> {
     try {
-      const { data: qrcodeData, error: qrcodeError } = await supabase
+      console.log('QRCodeRepositorySupabase.getQRCodeByCode - buscando código:', code);
+      
+      // Tentar buscar por 'code' primeiro
+      let { data: qrcodeData, error: qrcodeError } = await supabase
         .from('qrcodes')
         .select(`
           *,
@@ -77,13 +83,38 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
           )
         `)
         .eq('code', code)
-        .single();
+        .maybeSingle(); // Usa maybeSingle() em vez de single() para não dar erro se não encontrar
+
+      // Se não encontrou por 'code', tentar buscar por 'id' (UUID)
+      if (!qrcodeData && !qrcodeError) {
+        console.log('Não encontrou por code, tentando buscar por ID (UUID)...');
+        const result = await supabase
+          .from('qrcodes')
+          .select(`
+            *,
+            questions (
+              id,
+              text,
+              answers (
+                id,
+                text,
+                is_correct
+              )
+            )
+          `)
+          .eq('id', code)
+          .maybeSingle();
+        
+        qrcodeData = result.data;
+        qrcodeError = result.error;
+      }
 
       if (qrcodeError || !qrcodeData) {
         console.error('Erro ao buscar QR Code por código:', qrcodeError);
         return undefined;
       }
 
+      console.log('QR Code encontrado no banco:', { id: qrcodeData.id, code: qrcodeData.code });
       return this.mapToQRCodeEntity(qrcodeData);
     } catch (error) {
       console.error('Erro ao obter QR Code por código:', error);
@@ -139,6 +170,8 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
 
   async getUserValidations(userId: string): Promise<any[]> {
     try {
+      console.log('QRCodeRepositorySupabase.getUserValidations - buscando validações do usuário:', userId);
+      
       const { data, error } = await supabase
         .from('validations')
         .select(`
@@ -146,7 +179,9 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
           qrcodes (
             code,
             location_name,
-            description
+            description,
+            latitude,
+            longitude
           )
         `)
         .eq('user_id', userId)
@@ -157,6 +192,7 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
         return [];
       }
 
+      console.log('Validações encontradas:', data?.length || 0);
       return data || [];
     } catch (error) {
       console.error('Erro ao buscar validações do usuário:', error);

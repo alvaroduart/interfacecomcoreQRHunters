@@ -4,6 +4,7 @@ import { Coordinates } from '../value-objects/Coordinates';
 
 export interface ValidateQRCodeParams {
     qrCodeId: string;
+    userId: string;
     userCoordinates: {
         latitude: number;
         longitude: number;
@@ -30,8 +31,10 @@ export class ValidateQRCodeUseCase {
     ) {}
 
     async execute(params: ValidateQRCodeParams): Promise<ValidateQRCodeResult> {
-        const { qrCodeId, userCoordinates, answerId, proximityRadiusInMeters } = params;
+        const { qrCodeId, userId, userCoordinates, answerId, proximityRadiusInMeters } = params;
         const proximityRadius = proximityRadiusInMeters ?? this.defaultProximityRadius;
+
+        console.log('ValidateQRCodeUseCase.execute - qrCodeId recebido:', qrCodeId);
 
         // 1. Buscar o QRCode pelo ID
         const qrCode = await this.qrCodeRepository.getQRCodeDetails(qrCodeId);
@@ -52,7 +55,19 @@ export class ValidateQRCodeUseCase {
 
         if (!isWithinRadius) {
             const validatedQRCode = qrCode.withValidation('errou');
-            await this.qrCodeRepository.updateQRCode(validatedQRCode);
+            
+            // Salvar validação no banco
+            if ('saveValidation' in this.qrCodeRepository) {
+                await (this.qrCodeRepository as any).saveValidation(
+                    userId,
+                    qrCodeId,
+                    answerId,
+                    userCoordinates.latitude,
+                    userCoordinates.longitude,
+                    distance,
+                    'errou'
+                );
+            }
 
             return {
                 success: false,
@@ -70,7 +85,19 @@ export class ValidateQRCodeUseCase {
 
         if (!isCorrectAnswer) {
             const validatedQRCode = qrCode.withValidation('errou');
-            await this.qrCodeRepository.updateQRCode(validatedQRCode);
+            
+            // Salvar validação no banco
+            if ('saveValidation' in this.qrCodeRepository) {
+                await (this.qrCodeRepository as any).saveValidation(
+                    userId,
+                    qrCodeId,
+                    answerId,
+                    userCoordinates.latitude,
+                    userCoordinates.longitude,
+                    distance,
+                    'errou'
+                );
+            }
 
             return {
                 success: false,
@@ -84,7 +111,19 @@ export class ValidateQRCodeUseCase {
 
         // 5. Sucesso - localização e resposta corretas
         const validatedQRCode = qrCode.withValidation('acertou');
-        await this.qrCodeRepository.updateQRCode(validatedQRCode);
+        
+        // Salvar validação no banco
+        if ('saveValidation' in this.qrCodeRepository) {
+            await (this.qrCodeRepository as any).saveValidation(
+                userId,
+                qrCodeId,
+                answerId,
+                userCoordinates.latitude,
+                userCoordinates.longitude,
+                distance,
+                'acertou'
+            );
+        }
 
         return {
             success: true,

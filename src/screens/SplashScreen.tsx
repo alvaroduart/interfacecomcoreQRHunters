@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Animated } from 'react-native';
 import theme from '../theme/theme';
+import { useAuth } from '../context/AuthContext';
 
 type SplashScreenProps = {
   navigation: any;
@@ -10,6 +11,7 @@ type SplashScreenProps = {
 const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
   const opacity = new Animated.Value(0);
   const scale = new Animated.Value(0.8);
+  const { user } = useAuth();
 
   useEffect(() => {
     Animated.sequence([
@@ -34,7 +36,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       })
     ]).start(() => {
       if (navigation && typeof navigation.replace === 'function') {
-        navigation.replace('Login');
+        // Replace to the appropriate initial route depending on auth state.
+        // If a user is logged in the StackNavigator registers 'MainApp',
+        // otherwise the auth screens including 'Login' are registered.
+        navigation.replace(user ? 'MainApp' : 'Login');
       }
     });
   }, [navigation]);

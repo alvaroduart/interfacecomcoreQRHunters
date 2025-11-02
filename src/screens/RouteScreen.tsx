@@ -4,47 +4,93 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity,
-  Image
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
-
-import { makeJourneyUseCases } from '../core/factories';
-import { Journey } from '../core/domain/entities/Journey';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { makeQRCodeUseCases } from '../core/factories';
+import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
-
-type RouteScreenRouteProp = RouteProp<RootStackParamList, 'Route'>;
+import { ValidatedQRCode } from '../core/domain/use-cases/GetUserValidatedQRCodesUseCase';
 
 const RouteScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteScreenRouteProp>();
-  const [journey, setJourney] = useState<Journey | null>(null);
-
-  const journeyId = route.params?.journeyId;
+  const { user } = useAuth();
+  const [validatedQRCodes, setValidatedQRCodes] = useState<ValidatedQRCode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [region, setRegion] = useState({
+    latitude: -21.547429,
+    longitude: -45.439200,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
 
   useEffect(() => {
-    const fetchJourney = async () => {
-      if (!journeyId) return;
-      const { getJourneyUseCase } = makeJourneyUseCases();
-      const journeyData = await getJourneyUseCase.execute({ journeyId });
-      if (journeyData) {
-        setJourney(journeyData);
+    const fetchValidatedQRCodes = async () => {
+      if (!user) {
+        console.log('RouteScreen - Usuário não autenticado');
+        return;
+      }
+
+      console.log('RouteScreen - Buscando validações para usuário:', user.id);
+
+      try {
+        const { getUserValidatedQRCodesUseCase } = makeQRCodeUseCases();
+        const validated = await getUserValidatedQRCodesUseCase.execute({ 
+          userId: user.id 
+        });
+        
+        console.log('RouteScreen - QR Codes validados recebidos:', validated.length);
+        console.log('RouteScreen - Dados:', JSON.stringify(validated, null, 2));
+        
+        setValidatedQRCodes(validated);
+
+        // Se houver QR codes validados, ajusta a região do mapa para o primeiro
+        if (validated.length > 0) {
+          console.log('RouteScreen - Ajustando região do mapa para:', validated[0].latitude, validated[0].longitude);
+          setRegion({
+            latitude: validated[0].latitude,
+            longitude: validated[0].longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          });
+        } else {
+          console.log('RouteScreen - Nenhum QR code validado encontrado');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar QR codes validados:', error);
+        Alert.alert('Erro', 'Não foi possível carregar os pontos validados');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchJourney();
-  }, [journeyId]);
-
-  // Drawer intentionalmente não disponível nesta tela (drawer apenas no Profile)
+    fetchValidatedQRCodes();
+  }, [user]);
 
   const handleFinishRoute = () => {
-    // Lógica para finalizar o percurso
-    navigation.navigate('Scanner');
+    if (validatedQRCodes.length === 0) {
+      Alert.alert('Atenção', 'Você ainda não validou nenhum ponto!');
+      return;
+    }
+
+    Alert.alert(
+      'Finalizar Percurso',
+      `Você validou ${validatedQRCodes.length} ponto(s). Deseja finalizar o percurso?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Finalizar', 
+          onPress: () => navigation.navigate('Home')
+        }
+      ]
+    );
   };
 
   return (
@@ -53,47 +99,85 @@ const RouteScreen = () => {
       
       {/* Cabeçalho */}
       <View style={styles.header}>
-        <View style={{ width: 40 }} />
-        <Text style={styles.headerTitle}>Percurso</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>← Voltar</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Mapa do Percurso</Text>
+        <View style={{ width: 80 }} />
       </View>
       
-      {/* Conteúdo do Mapa */}
-      <View style={styles.mapContainer}>
-        {/* Aqui usaríamos um componente de mapa real como MapView do react-native-maps */}
-        <View style={styles.mockMap}>
-          {journey && journey.points.map((point, index) => (
-            <View key={point.id} style={[styles.routePoint, { top: `${10 + index * 10}%`, left: '25%' }]} />
-          ))}
+      {/* Mapa */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Carregando mapa...</Text>
+        </View>
+      ) : (
+        <View style={styles.mapContainer}>
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={styles.map}
+            region={region}
+            onRegionChangeComplete={setRegion}
+          >
+            {validatedQRCodes.map((qrCode, index) => {
+              console.log(`RouteScreen - Marcador ${index + 1}:`, qrCode.latitude, qrCode.longitude, qrCode.locationName);
+              return (
+                <Marker
+                  key={qrCode.id}
+                  coordinate={{
+                    latitude: qrCode.latitude,
+                    longitude: qrCode.longitude,
+                  }}
+                  title={qrCode.locationName}
+                  description={qrCode.description || 'Ponto validado'}
+                  pinColor={theme.colors.primary}
+                >
+                  <View style={styles.markerContainer}>
+                    <View style={styles.marker}>
+                      <Text style={styles.markerText}>{index + 1}</Text>
+                    </View>
+                  </View>
+                </Marker>
+              );
+            })}
+          </MapView>
           
-          {/* Ponto de chegada */}
-          <View style={[styles.destinationPoint]} />
-          
-          {/* Linha simulando o caminho */}
-          <View style={styles.routeLine} />
+          {/* Informações do percurso */}
+          <View style={styles.routeInfoContainer}>
+            <Text style={styles.routeInfoTitle}>📍 Seu Progresso</Text>
+            <Text style={styles.routeInfoText}>
+              Pontos validados: {validatedQRCodes.length}
+            </Text>
+            {validatedQRCodes.length === 0 && (
+              <Text style={styles.emptyText}>
+                Escaneie QR codes para ver os pontos no mapa!
+              </Text>
+            )}
+          </View>
         </View>
-        
-        {/* Informações do percurso */}
-        <View style={styles.routeInfoContainer}>
-          <Text style={styles.routeInfoText}>Tempo: 42:15</Text>
-          <Text style={styles.routeInfoText}>Distância: 3.5 km</Text>
-          {journey && <Text style={styles.routeInfoText}>Controles: {journey.points.filter(p => p.isCompleted).length}/{journey.points.length}</Text>}
-        </View>
-        
-        {/* Ponto de chegada */}
-        <View style={styles.destinationContainer}>
-          <Text style={styles.destinationText}>Chegada - CEFET</Text>
-        </View>
-      </View>
+      )}
       
-      {/* Botão para finalizar */}
+      {/* Botões */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={styles.finishButton}
-          onPress={handleFinishRoute}
+          style={styles.scanButton}
+          onPress={() => navigation.navigate('Scanner')}
         >
-          <Text style={styles.finishButtonText}>Finalizar Percurso</Text>
+          <Text style={styles.scanButtonText}>📷 Escanear QR Code</Text>
         </TouchableOpacity>
+        
+        {validatedQRCodes.length > 0 && (
+          <TouchableOpacity
+            style={styles.finishButton}
+            onPress={handleFinishRoute}
+          >
+            <Text style={styles.finishButtonText}>✓ Finalizar Percurso</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -109,7 +193,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: theme.colors.primary,
-    paddingTop: 10, // Ajuste para status bar
+    paddingTop: 10,
     paddingBottom: 16,
     paddingHorizontal: 12,
     elevation: 4,
@@ -118,100 +202,128 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
-  menuButton: {
+  backButton: {
     padding: 8,
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   headerTitle: {
     fontSize: theme.fontSizes.large,
     fontWeight: theme.fontWeights.bold,
     color: '#fff',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+  },
   mapContainer: {
     flex: 1,
     position: 'relative',
   },
-  mockMap: {
+  map: {
     flex: 1,
-    backgroundColor: '#e0e0e0',
-    position: 'relative',
   },
-  routePoint: {
-    position: 'absolute',
-    width: 15,
-    height: 15,
-    backgroundColor: '#3366ff',
-    borderRadius: 10,
-    left: '25%',
-    top: '10%',
-    zIndex: 2,
-    borderWidth: 2,
+  markerContainer: {
+    alignItems: 'center',
+  },
+  marker: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 20,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
     borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  destinationPoint: {
-    position: 'absolute',
-    width: 20,
-    height: 20,
-    backgroundColor: '#ff3333',
-    borderRadius: 10,
-    left: '25%',
-    top: '5%',
-    zIndex: 2,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  routeLine: {
-    position: 'absolute',
-    left: '25%',
-    top: '10%',
-    width: 4,
-    height: '70%',
-    backgroundColor: '#3366ff',
-    zIndex: 1,
+  markerText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   routeInfoContainer: {
     position: 'absolute',
+    top: 20,
     left: 20,
-    bottom: '60%',
+    right: 20,
     backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 8,
-    elevation: 3,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowRadius: 4,
+  },
+  routeInfoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginBottom: 8,
   },
   routeInfoText: {
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.text.secondary,
     marginBottom: 4,
   },
-  destinationContainer: {
-    position: 'absolute',
-    left: '30%',
-    bottom: '20%',
-    zIndex: 3,
-  },
-  destinationText: {
-    fontWeight: 'bold',
-    fontSize: 18,
+  emptyText: {
+    fontSize: 14,
+    color: theme.colors.text.secondary,
+    fontStyle: 'italic',
+    marginTop: 8,
   },
   buttonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    backgroundColor: '#333',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    gap: 12,
+  },
+  scanButton: {
+    backgroundColor: theme.colors.primary,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  scanButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   finishButton: {
-    backgroundColor: '#F9A825',
-    padding: 20,
-    borderRadius: 40,
+    backgroundColor: '#4CAF50',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   finishButtonText: {
-    color: 'white',
-    fontSize: 18,
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

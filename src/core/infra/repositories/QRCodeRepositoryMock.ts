@@ -125,4 +125,22 @@ export class QRCodeRepositoryMock implements QRCodeRepository {
     }
     return qrCode;
   }
+
+  async getUserValidations(userId: string): Promise<any[]> {
+    // Retorna QR codes validados (com status definido)
+    return this.qrcodes
+      .filter(qr => qr.status !== undefined)
+      .map(qr => ({
+        qrcode_id: qr.id,
+        user_id: userId,
+        latitude: qr.coordinates.latitude.value,
+        longitude: qr.coordinates.longitude.value,
+        created_at: qr.scannedAt?.toISOString() || new Date().toISOString(),
+        qrcodes: {
+          code: qr.code.value,
+          location_name: qr.location.value,
+          description: qr.description
+        }
+      }));
+  }
 }

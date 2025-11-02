@@ -17,6 +17,7 @@ import theme from '../theme/theme';
 import { makeQRCodeUseCases } from '../core/factories/QRCodeFactory';
 import { QRCode } from '../core/domain/entities/QRCode';
 import { Answer } from '../core/domain/entities/Question';
+import { useAuth } from '../context/AuthContext';
 
 type QuestionScreenRouteProp = RouteProp<RootStackParamList, 'Question'>;
 type QuestionScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Question'>;
@@ -24,6 +25,7 @@ type QuestionScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Que
 const QuestionScreen = () => {
   const navigation = useNavigation<QuestionScreenNavigationProp>();
   const route = useRoute<QuestionScreenRouteProp>();
+  const { user } = useAuth();
   
   const { qrCodeId, userLatitude, userLongitude } = route.params;
   
@@ -65,6 +67,11 @@ const QuestionScreen = () => {
       return;
     }
 
+    if (!user) {
+      Alert.alert('Erro', 'Usuário não autenticado');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -72,6 +79,7 @@ const QuestionScreen = () => {
       
       const result = await validateQRCodeUseCase.execute({
         qrCodeId,
+        userId: user.id,
         userCoordinates: {
           latitude: userLatitude,
           longitude: userLongitude

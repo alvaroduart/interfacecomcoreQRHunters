@@ -18,7 +18,6 @@ import theme from '../theme/theme';
 import { CameraView, Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import { makeQRCodeUseCases } from '../core/factories/QRCodeFactory';
-import { QRCodeRepositoryMock } from '../core/infra/repositories/QRCodeRepositoryMock';
 
 const { width } = Dimensions.get('window');
 const SCANNER_SIZE = width * 0.65;
@@ -85,10 +84,11 @@ const ScannerScreen = () => {
 
     try {
       // Buscar o QR Code pelo código escaneado
-      const { validateQRCodeUseCase } = makeQRCodeUseCases();
-      const qrCodeRepository = QRCodeRepositoryMock.getInstance();
+      const { repository: qrCodeRepository } = makeQRCodeUseCases();
       
+      console.log('Código escaneado:', data);
       const qrCode = await qrCodeRepository.getQRCodeByCode(data);
+      console.log('QR Code encontrado:', qrCode ? { id: qrCode.id, code: qrCode.code.value } : null);
 
       if (!qrCode) {
         Alert.alert(

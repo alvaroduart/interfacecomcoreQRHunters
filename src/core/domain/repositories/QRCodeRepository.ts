@@ -7,5 +7,6 @@ export interface QRCodeRepository {
   getQRCodeDetails(id: string): Promise<QRCode | undefined>;
   updateQRCode(qrCode: QRCode): Promise<QRCode>;
   getQRCodeByCode(code: string): Promise<QRCode | undefined>;
+  getUserValidations(userId: string): Promise<any[]>;
 }
 

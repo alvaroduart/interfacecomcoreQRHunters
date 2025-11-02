@@ -2,6 +2,7 @@ import { QRCodeRepository } from '../domain/repositories/QRCodeRepository';
 import { GetQRCodeDetailsUseCase } from '../domain/use-cases/GetQRCodeDetailsUseCase';
 import { ScanQRCodeUseCase } from '../domain/use-cases/ScanQRCodeUseCase';
 import { ValidateQRCodeUseCase } from '../domain/use-cases/ValidateQRCodeUseCase';
+import { GetUserValidatedQRCodesUseCase } from '../domain/use-cases/GetUserValidatedQRCodesUseCase';
 import { QRCodeRepositoryMock } from '../infra/repositories/QRCodeRepositoryMock';
 import { QRCodeRepositorySupabase } from '../infra/repositories/QRCodeRepositorySupabase';
 import { config } from '../config';
@@ -19,11 +20,13 @@ export function makeQRCodeUseCases() {
     qrCodeRepository, 
     config.proximityRadiusMeters
   );
+  const getUserValidatedQRCodesUseCase = new GetUserValidatedQRCodesUseCase(qrCodeRepository);
 
   return {
     getQRCodeDetailsUseCase,
     scanQRCodeUseCase,
     validateQRCodeUseCase,
+    getUserValidatedQRCodesUseCase,
     repository: qrCodeRepository,
   };
 }
