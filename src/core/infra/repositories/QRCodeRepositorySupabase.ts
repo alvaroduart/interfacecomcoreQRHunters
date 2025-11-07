@@ -65,7 +65,9 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
 
   async getQRCodeByCode(code: string): Promise<QRCode | undefined> {
     try {
-      console.log('QRCodeRepositorySupabase.getQRCodeByCode - buscando código:', code);
+      // Limpar o código removendo espaços e quebras de linha
+      const cleanCode = code.trim();
+      console.log('QRCodeRepositorySupabase.getQRCodeByCode - buscando código:', cleanCode);
       
       // Tentar buscar por 'code' primeiro
       let { data: qrcodeData, error: qrcodeError } = await supabase
@@ -82,7 +84,7 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
             )
           )
         `)
-        .eq('code', code)
+        .eq('code', cleanCode)
         .maybeSingle(); // Usa maybeSingle() em vez de single() para não dar erro se não encontrar
 
       // Se não encontrou por 'code', tentar buscar por 'id' (UUID)
@@ -102,7 +104,7 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
               )
             )
           `)
-          .eq('id', code)
+          .eq('id', cleanCode)
           .maybeSingle();
         
         qrcodeData = result.data;
@@ -147,8 +149,18 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
     distanceMeters: number,
     status: 'acertou' | 'errou'
   ): Promise<void> {
+    console.log('[QRCodeRepositorySupabase] Salvando validação:', {
+      userId,
+      qrCodeId,
+      answerId,
+      userLatitude,
+      userLongitude,
+      distanceMeters,
+      status
+    });
+
     try {
-      const { error } = await supabase.from('validations').insert({
+      const { data, error } = await supabase.from('validations').insert({
         user_id: userId,
         qrcode_id: qrCodeId,
         answer_id: answerId,
@@ -156,14 +168,16 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
         user_longitude: userLongitude,
         distance_meters: distanceMeters,
         status,
-      });
+      }).select();
 
       if (error) {
-        console.error('Erro ao salvar validação:', error);
+        console.error('[QRCodeRepositorySupabase] Erro ao salvar validação:', error);
         throw error;
       }
+
+      console.log('[QRCodeRepositorySupabase] Validação salva com sucesso:', data);
     } catch (error) {
-      console.error('Erro ao salvar validação:', error);
+      console.error('[QRCodeRepositorySupabase] Erro ao salvar validação:', error);
       throw error;
     }
   }
@@ -185,6 +199,7 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
           )
         `)
         .eq('user_id', userId)
+        .eq('status', 'acertou')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -193,7 +208,30 @@ export class QRCodeRepositorySupabase implements QRCodeRepository {
       }
 
       console.log('Validações encontradas:', data?.length || 0);
-      return data || [];
+      
+      if (!data || data.length === 0) {
+        return [];
+      }
+
+      // Filtrar para manter apenas a primeira validação de cada QR Code (mais recente)
+      // Apenas validações com 'acertou' (já filtrado na query)
+      const uniqueQRCodes = new Map<string, any>();
+      
+      for (const validation of data) {
+        const qrcodeId = validation.qrcode_id;
+        
+        // Se já temos uma validação deste QR Code, pula (queremos apenas a primeira - mais recente)
+        if (uniqueQRCodes.has(qrcodeId)) {
+          continue;
+        }
+        
+        uniqueQRCodes.set(qrcodeId, validation);
+      }
+
+      const uniqueValidations = Array.from(uniqueQRCodes.values());
+      console.log('Validações únicas (apenas acertou):', uniqueValidations.length);
+      
+      return uniqueValidations;
     } catch (error) {
       console.error('Erro ao buscar validações do usuário:', error);
       return [];

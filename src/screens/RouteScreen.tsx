@@ -134,8 +134,7 @@ const RouteScreen = () => {
                     longitude: qrCode.longitude,
                   }}
                   title={qrCode.locationName}
-                  description={qrCode.description || 'Ponto validado'}
-                  pinColor={theme.colors.primary}
+                  description={qrCode.description || 'Ponto validado com sucesso'}
                 >
                   <View style={styles.markerContainer}>
                     <View style={styles.marker}>
@@ -151,11 +150,11 @@ const RouteScreen = () => {
           <View style={styles.routeInfoContainer}>
             <Text style={styles.routeInfoTitle}>📍 Seu Progresso</Text>
             <Text style={styles.routeInfoText}>
-              Pontos validados: {validatedQRCodes.length}
+              Pontos validados com sucesso: {validatedQRCodes.length}
             </Text>
             {validatedQRCodes.length === 0 && (
               <Text style={styles.emptyText}>
-                Escaneie QR codes para ver os pontos no mapa!
+                Escaneie QR codes e acerte as perguntas para ver os pontos no mapa!
               </Text>
             )}
           </View>
@@ -237,7 +236,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   marker: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: '#4CAF50',
     borderRadius: 20,
     width: 36,
     height: 36,
@@ -281,6 +280,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.text.secondary,
     marginBottom: 4,
+  },
+  routeInfoSuccess: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4CAF50',
+    marginBottom: 2,
+  },
+  routeInfoError: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F44336',
+    marginBottom: 2,
   },
   emptyText: {
     fontSize: 14,

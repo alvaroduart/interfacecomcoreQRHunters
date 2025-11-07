@@ -8,6 +8,7 @@ export interface ValidatedQRCode {
   latitude: number;
   longitude: number;
   validatedAt: Date;
+  status: 'acertou' | 'errou';
 }
 
 export class GetUserValidatedQRCodesUseCase {
@@ -29,6 +30,7 @@ export class GetUserValidatedQRCodesUseCase {
         latitude: Number(validation.qrcodes.latitude), 
         longitude: Number(validation.qrcodes.longitude),
         validatedAt: new Date(validation.created_at),
+        status: validation.status as 'acertou' | 'errou',
       };
       
       console.log('GetUserValidatedQRCodesUseCase - QR Code mapeado:', qrCode);

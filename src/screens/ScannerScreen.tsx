@@ -86,8 +86,10 @@ const ScannerScreen = () => {
       // Buscar o QR Code pelo código escaneado
       const { repository: qrCodeRepository } = makeQRCodeUseCases();
       
-      console.log('Código escaneado:', data);
-      const qrCode = await qrCodeRepository.getQRCodeByCode(data);
+      // Remover espaços e quebras de linha do código escaneado
+      const cleanCode = data.trim();
+      console.log('Código escaneado:', cleanCode);
+      const qrCode = await qrCodeRepository.getQRCodeByCode(cleanCode);
       console.log('QR Code encontrado:', qrCode ? { id: qrCode.id, code: qrCode.code.value } : null);
 
       if (!qrCode) {

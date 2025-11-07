@@ -27,6 +27,7 @@ export class ProgressRepositorySupabase implements ProgressRepository {
         id,
         status,
         created_at,
+        qrcode_id,
         qrcodes:qrcode_id (
           id,
           code,
@@ -56,8 +57,35 @@ export class ProgressRepositorySupabase implements ProgressRepository {
     console.log('[ProgressRepositorySupabase] Validações encontradas:', data.length);
     console.log('[ProgressRepositorySupabase] Dados brutos:', JSON.stringify(data, null, 2));
 
+    // Filtrar para manter apenas a primeira validação de cada QR Code (mais recente)
+    // Agora incluindo tanto 'acertou' quanto 'errou'
+    const uniqueQRCodes = new Map<string, any>();
+    
+    for (const validation of data) {
+      const qrcodeId = validation.qrcode_id;
+      
+      console.log('[ProgressRepositorySupabase] Processando validação:', {
+        validationId: validation.id,
+        qrcodeId: qrcodeId,
+        status: validation.status,
+        jaTem: uniqueQRCodes.has(qrcodeId)
+      });
+      
+      // Se já temos uma validação deste QR Code, pula (queremos apenas a primeira - mais recente)
+      if (uniqueQRCodes.has(qrcodeId)) {
+        console.log('[ProgressRepositorySupabase] Pulando - QRCode já processado:', qrcodeId);
+        continue;
+      }
+      
+      console.log('[ProgressRepositorySupabase] Adicionando validação:', qrcodeId, 'status:', validation.status);
+      uniqueQRCodes.set(qrcodeId, validation);
+    }
+
+    console.log('[ProgressRepositorySupabase] QRCodes únicos validados:', uniqueQRCodes.size);
+    console.log('[ProgressRepositorySupabase] IDs dos QRCodes únicos:', Array.from(uniqueQRCodes.keys()));
+
     // Mapear os dados para a entidade QRCode
-    const qrcodes = data.map((validation: any) => {
+    const qrcodes = Array.from(uniqueQRCodes.values()).map((validation: any) => {
       try {
         const qrcode = validation.qrcodes;
         
@@ -88,6 +116,8 @@ export class ProgressRepositorySupabase implements ProgressRepository {
           dummyAnswers
         );
 
+        // Usar qrcode.id (ID do QRCode) como chave única
+        // pois agora filtramos para ter apenas uma validação por QRCode
         const qrcodeEntity = QRCode.create(
           qrcode.id,
           Code.create(qrcode.code),
