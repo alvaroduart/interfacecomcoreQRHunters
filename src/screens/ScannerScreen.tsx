@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   Alert,
   Dimensions,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
-import { CameraView, Camera } from 'expo-camera';
+import { CameraView, Camera, BarcodeScanningResult } from 'expo-camera';
 import * as Location from 'expo-location';
 import { makeQRCodeUseCases } from '../core/factories/QRCodeFactory';
 
@@ -29,81 +29,101 @@ const ScannerScreen = () => {
   const [scanned, setScanned] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isActive, setIsActive] = useState(true);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  // 📸 Pedir permissões iniciais
   useEffect(() => {
     requestPermissions();
   }, []);
 
-  // Pausar a câmera quando o componente não estiver focado
+  // ⏯ Controlar câmera conforme navegação
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    const focusSub = navigation.addListener('focus', () => {
       setIsActive(true);
       setScanned(false);
     });
-
-    const unsubscribeBlur = navigation.addListener('blur', () => {
+    const blurSub = navigation.addListener('blur', () => {
       setIsActive(false);
       setScanned(false);
     });
 
     return () => {
-      unsubscribe();
-      unsubscribeBlur();
+      focusSub();
+      blurSub();
     };
   }, [navigation]);
 
   const requestPermissions = async () => {
-    // Solicitar permissão da câmera
     const { status: cameraStatus } = await Camera.requestCameraPermissionsAsync();
     setHasPermission(cameraStatus === 'granted');
 
-    // Solicitar permissão de localização
     const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
     setHasLocationPermission(locationStatus === 'granted');
 
-    // Obter localização atual
     if (locationStatus === 'granted') {
       try {
         const location = await Location.getCurrentPositionAsync({});
         setCurrentLocation({
           latitude: location.coords.latitude,
-          longitude: location.coords.longitude
+          longitude: location.coords.longitude,
         });
       } catch (error) {
         console.error('Erro ao obter localização:', error);
-        Alert.alert('Erro', 'Não foi possível obter sua localização');
+        Alert.alert('Erro', 'Não foi possível obter sua localização.');
       }
+    } else {
+      Alert.alert(
+        'Atenção',
+        'Permissão de localização não concedida. O app funcionará com recursos limitados.'
+      );
     }
   };
 
-  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
+  const handleBarCodeScanned = async (result: BarcodeScanningResult) => {
     if (scanned || !isActive) return;
-    
+
+    // debounce entre leituras
+    if (debounceTimeout.current) return;
+    debounceTimeout.current = setTimeout(() => {
+      debounceTimeout.current = null;
+    }, 1200);
+
     setScanned(true);
-    setIsActive(false); // Desativa o scanner imediatamente
+    setIsActive(false);
 
     try {
-      // Buscar o QR Code pelo código escaneado
+      const { data } = result;
+
+      if (!data) {
+        Alert.alert('QR Code inválido', 'O código lido está vazio.', [
+          {
+            text: 'OK',
+            onPress: () => {
+              setScanned(false);
+              setIsActive(true);
+            },
+          },
+        ]);
+        return;
+      }
+
+      // Buscar QR Code
       const { repository: qrCodeRepository } = makeQRCodeUseCases();
-      
-      // Remover espaços e quebras de linha do código escaneado
-      const cleanCode = data.trim();
-      console.log('Código escaneado:', cleanCode);
-      const qrCode = await qrCodeRepository.getQRCodeByCode(cleanCode);
-      console.log('QR Code encontrado:', qrCode ? { id: qrCode.id, code: qrCode.code.value } : null);
+      const qrCode = await qrCodeRepository.getQRCodeByCode(data);
 
       if (!qrCode) {
         Alert.alert(
           'QR Code Inválido',
           'Este QR Code não pertence a nenhum ponto de controle.',
           [
-            { 
-              text: 'OK', 
-              onPress: () => {
-                setScanned(false);
-                setIsActive(true);
-              }
-            }
+            {
+              text: 'OK',
+              onPress: () =>
+                setTimeout(() => {
+                  setScanned(false);
+                  setIsActive(true);
+                }, 300),
+            },
           ]
         );
         return;
@@ -114,40 +134,36 @@ const ScannerScreen = () => {
           'Localização não disponível',
           'Não foi possível obter sua localização. Verifique as permissões.',
           [
-            { 
-              text: 'OK', 
-              onPress: () => {
-                setScanned(false);
-                setIsActive(true);
-              }
-            }
+            {
+              text: 'OK',
+              onPress: () =>
+                setTimeout(() => {
+                  setScanned(false);
+                  setIsActive(true);
+                }, 300),
+            },
           ]
         );
         return;
       }
 
-      // Navegar para a tela de pergunta
+      // 🔗 Navegação segura
       navigation.navigate('Question', {
         qrCodeId: qrCode.id,
         userLatitude: currentLocation.latitude,
-        userLongitude: currentLocation.longitude
+        userLongitude: currentLocation.longitude,
       });
-
     } catch (error) {
       console.error('Erro ao processar QR Code:', error);
-      Alert.alert(
-        'Erro',
-        'Ocorreu um erro ao processar o QR Code',
-        [
-          { 
-            text: 'OK', 
-            onPress: () => {
-              setScanned(false);
-              setIsActive(true);
-            }
-          }
-        ]
-      );
+      Alert.alert('Erro', 'Ocorreu um erro ao processar o QR Code.', [
+        {
+          text: 'OK',
+          onPress: () => {
+            setScanned(false);
+            setIsActive(true);
+          },
+        },
+      ]);
     }
   };
 
@@ -179,71 +195,47 @@ const ScannerScreen = () => {
     );
   }
 
-  if (hasLocationPermission === false) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.permissionContainer}>
-          <Ionicons name="location-outline" size={64} color={theme.colors.text.secondary} />
-          <Text style={styles.permissionTitle}>Permissão de Localização Necessária</Text>
-          <Text style={styles.permissionText}>
-            Para validar sua presença no ponto de controle, precisamos de acesso à sua localização.
-          </Text>
-          <TouchableOpacity style={styles.permissionButton} onPress={requestPermissions}>
-            <Text style={styles.permissionButtonText}>Conceder Permissão</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      
-      {/* Cabeçalho */}
       <View style={styles.header}>
         <View style={{ width: 40 }} />
-        <Text style={styles.headerTitle}>Validar Qr Code</Text>
+        <Text style={styles.headerTitle}>Validar QR Code</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Área da câmera */}
       <View style={styles.cameraContainer}>
-        <CameraView
-          style={styles.camera}
-          facing="back"
-          onBarcodeScanned={scanned || !isActive ? undefined : handleBarCodeScanned}
-          barcodeScannerSettings={{
-            barcodeTypes: ['qr'],
-          }}
-        >
-          <View style={styles.scanArea}>
-            <View style={styles.scanSquare}>
-              <View style={styles.cornerTL} />
-              <View style={styles.cornerTR} />
-              <View style={styles.cornerBL} />
-              <View style={styles.cornerBR} />
+        {isActive && (
+          <CameraView
+            style={styles.camera}
+            facing="back"
+            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: ['qr'],
+            }}
+          >
+            <View style={styles.scanArea}>
+              <View style={styles.scanSquare}>
+                <View style={styles.cornerTL} />
+                <View style={styles.cornerTR} />
+                <View style={styles.cornerBL} />
+                <View style={styles.cornerBR} />
+              </View>
             </View>
-          </View>
-        </CameraView>
+          </CameraView>
+        )}
 
-        {/* Guia para o usuário */}
-        <Text style={styles.guideText}>
-          Posicione o QR do ponto de controle dentro do quadrado
-        </Text>
+        <Text style={styles.guideText}>Posicione o QR dentro do quadrado</Text>
       </View>
 
-      {/* Área de informações */}
       <View style={styles.infoArea}>
         <View style={styles.infoCard}>
           <Ionicons name="information-circle" size={24} color={theme.colors.primary} />
           <Text style={styles.infoText}>
-            {currentLocation 
-              ? 'Câmera e localização ativas'
-              : 'Obtendo localização...'}
+            {currentLocation ? 'Câmera e localização ativas' : 'Obtendo localização...'}
           </Text>
         </View>
-        
+
         {scanned && (
           <View style={styles.processingCard}>
             <ActivityIndicator size="small" color={theme.colors.primary} />
@@ -255,6 +247,7 @@ const ScannerScreen = () => {
   );
 };
 
+// 🎨 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -268,11 +261,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 16,
     paddingHorizontal: 12,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
   },
   headerTitle: {
     fontSize: theme.fontSizes.large,
@@ -291,17 +279,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
   },
   scanSquare: {
     width: SCANNER_SIZE,
     height: SCANNER_SIZE,
-    borderWidth: 2,
     borderColor: 'transparent',
-    backgroundColor: 'transparent',
-    position: 'relative',
   },
-  // Cantos do quadrado de scanner
   cornerTL: {
     position: 'absolute',
     top: -2,
@@ -370,10 +353,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: theme.borderRadius.medium,
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   infoText: {
     marginLeft: 12,
@@ -424,7 +403,6 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
-    paddingHorizontal: 20,
   },
   permissionButton: {
     backgroundColor: theme.colors.primary,
