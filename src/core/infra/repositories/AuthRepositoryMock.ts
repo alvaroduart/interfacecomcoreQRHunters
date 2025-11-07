@@ -73,4 +73,15 @@ export class AuthRepositoryMock implements AuthRepository {
   public reset(): void {
     this.users = [];
   }
+
+  async uploadAvatar(userId: string, fileUri: string, fileName: string, fileType: string): Promise<string> {
+    // Mock: retorna uma URL fake
+    console.log('[AuthRepositoryMock] Upload de avatar simulado');
+    return `https://mock-storage.com/avatars/${userId}/${fileName}`;
+  }
+
+  async updateUserAvatar(userId: string, avatarUrl: string): Promise<void> {
+    // Mock: apenas loga
+    console.log('[AuthRepositoryMock] Avatar atualizado para:', avatarUrl);
+  }
 }

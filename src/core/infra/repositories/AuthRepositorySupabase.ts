@@ -32,15 +32,17 @@ export class AuthRepositorySupabase implements AuthRepository {
         throw new Error('Usuário não encontrado');
       }
 
-      // Extrair nome do metadata ou usar email
+      // Extrair nome e avatar do metadata ou usar email
       const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuário';
+      const avatarUrl = data.user.user_metadata?.avatar_url;
 
       // Usar uma senha vazia já que não armazenamos a senha do Supabase
       return User.create(
         data.user.id,
         Name.create(userName),
         Email.create(data.user.email || ''),
-        Password.createForAuth('') // Senha não é retornada pela API
+        Password.createForAuth(''), // Senha não é retornada pela API
+        avatarUrl
       );
     } catch (error: any) {
       console.error('Erro no login:', error);
@@ -189,12 +191,14 @@ export class AuthRepositorySupabase implements AuthRepository {
       }
 
       const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuário';
+      const avatarUrl = data.user.user_metadata?.avatar_url;
 
       return User.create(
         data.user.id,
         Name.create(userName),
         Email.create(data.user.email || ''),
-        Password.createForAuth('') // Senha não é retornada pela API
+        Password.createForAuth(''), // Senha não é retornada pela API
+        avatarUrl
       );
     } catch (error) {
       console.error('Erro ao obter usuário atual:', error);
@@ -212,6 +216,84 @@ export class AuthRepositorySupabase implements AuthRepository {
     } catch (error: any) {
       console.error('Erro ao fazer logout:', error);
       throw new Error(error.message || 'Erro ao fazer logout');
+    }
+  }
+
+  async uploadAvatar(userId: string, fileUri: string, fileName: string, fileType: string): Promise<string> {
+    try {
+      console.log('[AuthRepositorySupabase] Iniciando upload de avatar');
+      console.log('[AuthRepositorySupabase] userId:', userId);
+      console.log('[AuthRepositorySupabase] fileUri:', fileUri);
+      console.log('[AuthRepositorySupabase] fileName:', fileName);
+      console.log('[AuthRepositorySupabase] fileType:', fileType);
+
+      // Ler o arquivo como base64
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(blob);
+      });
+
+      // Nome único do arquivo usando timestamp
+      const fileExt = fileName.split('.').pop();
+      const filePath = `${userId}/${Date.now()}.${fileExt}`;
+
+      console.log('[AuthRepositorySupabase] Fazendo upload para:', filePath);
+
+      // Upload para o Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, arrayBuffer, {
+          contentType: fileType,
+          upsert: true,
+        });
+
+      if (error) {
+        console.error('[AuthRepositorySupabase] Erro no upload:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('[AuthRepositorySupabase] Upload concluído:', data);
+
+      // Obter URL pública
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const avatarUrl = publicUrlData.publicUrl;
+      console.log('[AuthRepositorySupabase] URL pública:', avatarUrl);
+
+      return avatarUrl;
+    } catch (error: any) {
+      console.error('[AuthRepositorySupabase] Erro ao fazer upload do avatar:', error);
+      throw new Error(error.message || 'Erro ao fazer upload do avatar');
+    }
+  }
+
+  async updateUserAvatar(userId: string, avatarUrl: string): Promise<void> {
+    try {
+      console.log('[AuthRepositorySupabase] Atualizando avatar do usuário');
+      console.log('[AuthRepositorySupabase] userId:', userId);
+      console.log('[AuthRepositorySupabase] avatarUrl:', avatarUrl);
+
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          avatar_url: avatarUrl,
+        },
+      });
+
+      if (error) {
+        console.error('[AuthRepositorySupabase] Erro ao atualizar avatar:', error);
+        throw new Error(error.message);
+      }
+
+      console.log('[AuthRepositorySupabase] Avatar atualizado com sucesso');
+    } catch (error: any) {
+      console.error('[AuthRepositorySupabase] Erro ao atualizar avatar do usuário:', error);
+      throw new Error(error.message || 'Erro ao atualizar avatar do usuário');
     }
   }
 }

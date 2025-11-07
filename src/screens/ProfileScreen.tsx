@@ -6,7 +6,8 @@ import {
   Image, 
   TouchableOpacity, 
   TextInput,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -18,10 +19,74 @@ import theme from '../theme/theme';
 import { makeAuthUseCases } from '../core/factories';
 import { useAuth } from '../context/AuthContext';
 import { Password } from '../core/domain/value-objects/Password';
+import * as ImagePicker from 'expo-image-picker';
 
 const ProfileScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  
+  const openDrawer = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
+
+  const handlePickImage = async () => {
+    try {
+      // Solicitar permissão para acessar a galeria
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permissão negada', 'Precisamos de acesso à galeria para você escolher uma foto.');
+        return;
+      }
+
+      // Abrir galeria
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        await handleUploadAvatar(asset.uri, asset.fileName || 'avatar.jpg', asset.mimeType || 'image/jpeg');
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar imagem:', error);
+      Alert.alert('Erro', 'Não foi possível selecionar a imagem');
+    }
+  };
+
+  const handleUploadAvatar = async (fileUri: string, fileName: string, fileType: string) => {
+    if (!user) return;
+
+    setUploadingAvatar(true);
+    try {
+      const { uploadAvatarUseCase } = makeAuthUseCases();
+      const avatarUrl = await uploadAvatarUseCase.execute({
+        userId: user.id,
+        fileUri,
+        fileName,
+        fileType,
+      });
+
+      // Atualizar o usuário no contexto com o novo avatar
+      const updatedUser = user.updateAvatar(avatarUrl);
+      setUser(updatedUser);
+
+      Alert.alert('Sucesso', 'Foto de perfil atualizada com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao fazer upload do avatar:', error);
+      Alert.alert('Erro', error.message || 'Não foi possível atualizar a foto de perfil');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+  
   const handleDeleteAccount = async () => {
     if (!user) return;
     Alert.alert(
@@ -46,13 +111,6 @@ const ProfileScreen = () => {
         },
       ]
     );
-  };
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  
-  const openDrawer = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
   };
   
   const handleUpdatePassword = async () => {
@@ -108,11 +166,21 @@ const ProfileScreen = () => {
       {/* Perfil do usuário */}
       <View style={styles.profileContainer}>
         <View style={styles.avatarContainer}>
-          <Image 
-            source={{uri: 'https://i.imgur.com/eyaqwju.png'}} 
-            style={styles.avatar}
-          />
-          <TouchableOpacity style={styles.editAvatarButton}>
+          {uploadingAvatar ? (
+            <View style={styles.avatarLoadingContainer}>
+              <ActivityIndicator size="large" color={theme.colors.primary} />
+            </View>
+          ) : (
+            <Image 
+              source={{uri: user?.avatarUrl || 'https://i.imgur.com/eyaqwju.png'}} 
+              style={styles.avatar}
+            />
+          )}
+          <TouchableOpacity 
+            style={styles.editAvatarButton}
+            onPress={handlePickImage}
+            disabled={uploadingAvatar}
+          >
             <Ionicons name="camera" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -222,6 +290,16 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 2,
     borderColor: '#fff',
+  },
+  avatarLoadingContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#fff',
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   editAvatarButton: {
     position: 'absolute',

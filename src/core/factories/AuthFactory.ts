@@ -4,6 +4,7 @@ import { DeleteAccountUseCase } from '../domain/use-cases/DeleteAccountUseCase';
 import { LoginUseCase } from '../domain/use-cases/LoginUseCase';
 import { RegisterUseCase } from '../domain/use-cases/RegisterUseCase';
 import { UpdateProfileUseCase } from '../domain/use-cases/UpdateProfileUseCase';
+import { UploadAvatarUseCase } from '../domain/use-cases/UploadAvatarUseCase';
 import { AuthRepositoryMock } from '../infra/repositories/AuthRepositoryMock';
 import { AuthRepositorySupabase } from '../infra/repositories/AuthRepositorySupabase';
 import { config } from '../config';
@@ -18,6 +19,7 @@ export function makeAuthUseCases() {
   const loginUseCase = new LoginUseCase(authRepository);
   const registerUseCase = new RegisterUseCase(authRepository);
   const updateProfileUseCase = new UpdateProfileUseCase(authRepository);
+  const uploadAvatarUseCase = new UploadAvatarUseCase(authRepository);
 
   return {
     changePasswordUseCase,
@@ -25,5 +27,6 @@ export function makeAuthUseCases() {
     loginUseCase,
     registerUseCase,
     updateProfileUseCase,
+    uploadAvatarUseCase,
   };
 }

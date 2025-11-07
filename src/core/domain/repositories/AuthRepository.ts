@@ -9,5 +9,7 @@ export interface AuthRepository {
   updateProfile(userId: string, username: Name, email: Email): Promise<User>;
   changePassword(userId: string, oldPassword: Password, newPassword: Password): Promise<boolean>;
   deleteAccount(userId: string): Promise<boolean>;
+  uploadAvatar(userId: string, fileUri: string, fileName: string, fileType: string): Promise<string>;
+  updateUserAvatar(userId: string, avatarUrl: string): Promise<void>;
 }
 
