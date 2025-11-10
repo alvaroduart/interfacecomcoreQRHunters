@@ -57,35 +57,9 @@ export class ProgressRepositorySupabase implements ProgressRepository {
     console.log('[ProgressRepositorySupabase] Validações encontradas:', data.length);
     console.log('[ProgressRepositorySupabase] Dados brutos:', JSON.stringify(data, null, 2));
 
-    // Filtrar para manter apenas a primeira validação de cada QR Code (mais recente)
-    // Agora incluindo tanto 'acertou' quanto 'errou'
-    const uniqueQRCodes = new Map<string, any>();
-    
-    for (const validation of data) {
-      const qrcodeId = validation.qrcode_id;
-      
-      console.log('[ProgressRepositorySupabase] Processando validação:', {
-        validationId: validation.id,
-        qrcodeId: qrcodeId,
-        status: validation.status,
-        jaTem: uniqueQRCodes.has(qrcodeId)
-      });
-      
-      // Se já temos uma validação deste QR Code, pula (queremos apenas a primeira - mais recente)
-      if (uniqueQRCodes.has(qrcodeId)) {
-        console.log('[ProgressRepositorySupabase] Pulando - QRCode já processado:', qrcodeId);
-        continue;
-      }
-      
-      console.log('[ProgressRepositorySupabase] Adicionando validação:', qrcodeId, 'status:', validation.status);
-      uniqueQRCodes.set(qrcodeId, validation);
-    }
-
-    console.log('[ProgressRepositorySupabase] QRCodes únicos validados:', uniqueQRCodes.size);
-    console.log('[ProgressRepositorySupabase] IDs dos QRCodes únicos:', Array.from(uniqueQRCodes.keys()));
-
-    // Mapear os dados para a entidade QRCode
-    const qrcodes = Array.from(uniqueQRCodes.values()).map((validation: any) => {
+    // Mapear TODAS as validações (sem filtrar duplicatas)
+    // Cada validação terá seu próprio card na tela de Progresso
+    const qrcodes = data.map((validation: any) => {
       try {
         const qrcode = validation.qrcodes;
         
@@ -116,10 +90,9 @@ export class ProgressRepositorySupabase implements ProgressRepository {
           dummyAnswers
         );
 
-        // Usar qrcode.id (ID do QRCode) como chave única
-        // pois agora filtramos para ter apenas uma validação por QRCode
+        // Usar validation.id como chave única para permitir múltiplas validações do mesmo QR Code
         const qrcodeEntity = QRCode.create(
-          qrcode.id,
+          validation.id, // ID da validação (único para cada tentativa)
           Code.create(qrcode.code),
           Location.create(qrcode.location_name),
           coordinates,
@@ -144,7 +117,7 @@ export class ProgressRepositorySupabase implements ProgressRepository {
       }
     }).filter((qr: QRCode | null): qr is QRCode => qr !== null);
 
-    console.log('[ProgressRepositorySupabase] QRCodes mapeados:', qrcodes.length);
+    console.log('[ProgressRepositorySupabase] Total de validações mapeadas:', qrcodes.length);
     console.log('[ProgressRepositorySupabase] QRCodes finais:', qrcodes);
 
     return qrcodes;

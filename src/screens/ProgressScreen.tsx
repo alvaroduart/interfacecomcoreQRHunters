@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import theme from '../theme/theme';
@@ -22,23 +22,26 @@ const ProgressScreen = () => {
   const { user } = useAuth();
   const [checkpoints, setCheckpoints] = useState<QRCode[]>([]);
 
-  useEffect(() => {
-    const fetchProgress = async () => {
-      if (!user) {
-        console.log('[ProgressScreen] Usuário não está logado');
-        return;
-      }
+  // Busca os dados toda vez que a tela recebe foco
+  useFocusEffect(
+    useCallback(() => {
+      const fetchProgress = async () => {
+        if (!user) {
+          console.log('[ProgressScreen] Usuário não está logado');
+          return;
+        }
 
-      console.log('[ProgressScreen] Buscando progresso para userId:', user.id);
-      const { getUserProgressUseCase } = makeProgressUseCases();
-      const progress = await getUserProgressUseCase.execute({ userId: user.id });
-      console.log('[ProgressScreen] Progresso recebido:', progress.length, 'checkpoints');
-      console.log('[ProgressScreen] Dados completos:', JSON.stringify(progress, null, 2));
-      setCheckpoints(progress);
-    };
+        console.log('[ProgressScreen] Buscando progresso para userId:', user.id);
+        const { getUserProgressUseCase } = makeProgressUseCases();
+        const progress = await getUserProgressUseCase.execute({ userId: user.id });
+        console.log('[ProgressScreen] Progresso recebido:', progress.length, 'checkpoints');
+        console.log('[ProgressScreen] Dados completos:', JSON.stringify(progress, null, 2));
+        setCheckpoints(progress);
+      };
 
-    fetchProgress();
-  }, [user]);
+      fetchProgress();
+    }, [user])
+  );
 
   // Drawer intentionalmente não disponível nesta tela (drawer apenas no Profile)
 
