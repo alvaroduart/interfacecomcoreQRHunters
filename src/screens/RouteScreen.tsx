@@ -18,6 +18,8 @@ import { makeQRCodeUseCases } from '../core/factories';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { ValidatedQRCode } from '../core/domain/use-cases/GetUserValidatedQRCodesUseCase';
+// NOVO: Importação do ícone
+import { Ionicons } from '@expo/vector-icons';
 
 const RouteScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -31,68 +33,69 @@ const RouteScreen = () => {
     longitudeDelta: 0.01,
   });
 
+  // ... (useEffect e handleFinishRoute permanecem os mesmos) ...
   useEffect(() => {
-    const fetchValidatedQRCodes = async () => {
-      if (!user) {
-        console.log('RouteScreen - Usuário não autenticado');
-        return;
-      }
+    const fetchValidatedQRCodes = async () => {
+      if (!user) {
+        console.log('RouteScreen - Usuário não autenticado');
+        return;
+      }
 
-      console.log('RouteScreen - Buscando validações para usuário:', user.id);
+      console.log('RouteScreen - Buscando validações para usuário:', user.id);
 
-      try {
-        const { getUserValidatedQRCodesUseCase } = makeQRCodeUseCases();
-        const validated = await getUserValidatedQRCodesUseCase.execute({ 
-          userId: user.id 
-        });
-        
-        console.log('RouteScreen - QR Codes validados recebidos:', validated.length);
-        console.log('RouteScreen - Dados:', JSON.stringify(validated, null, 2));
-        
-        setValidatedQRCodes(validated);
+      try {
+        const { getUserValidatedQRCodesUseCase } = makeQRCodeUseCases();
+        const validated = await getUserValidatedQRCodesUseCase.execute({ 
+          userId: user.id 
+        });
+        
+        console.log('RouteScreen - QR Codes validados recebidos:', validated.length);
+        console.log('RouteScreen - Dados:', JSON.stringify(validated, null, 2));
+        
+        setValidatedQRCodes(validated);
 
-        // Se houver QR codes validados, ajusta a região do mapa para o primeiro
-        if (validated.length > 0) {
-          console.log('RouteScreen - Ajustando região do mapa para:', validated[0].latitude, validated[0].longitude);
-          setRegion({
-            latitude: validated[0].latitude,
-            longitude: validated[0].longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          });
-        } else {
-          console.log('RouteScreen - Nenhum QR code validado encontrado');
-        }
-      } catch (error) {
-        console.error('Erro ao buscar QR codes validados:', error);
-        Alert.alert('Erro', 'Não foi possível carregar os pontos validados');
-      } finally {
-        setLoading(false);
-      }
-    };
+        // Se houver QR codes validados, ajusta a região do mapa para o primeiro
+        if (validated.length > 0) {
+          console.log('RouteScreen - Ajustando região do mapa para:', validated[0].latitude, validated[0].longitude);
+          setRegion({
+            latitude: validated[0].latitude,
+            longitude: validated[0].longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          });
+        } else {
+          console.log('RouteScreen - Nenhum QR code validado encontrado');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar QR codes validados:', error);
+        Alert.alert('Erro', 'Não foi possível carregar os pontos validados');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    fetchValidatedQRCodes();
-  }, [user]);
+    fetchValidatedQRCodes();
+  }, [user]);
 
-  const handleFinishRoute = () => {
-    if (validatedQRCodes.length === 0) {
-      Alert.alert('Atenção', 'Você ainda não validou nenhum ponto!');
-      return;
-    }
+  const handleFinishRoute = () => {
+    if (validatedQRCodes.length === 0) {
+      Alert.alert('Atenção', 'Você ainda não validou nenhum ponto!');
+      return;
+    }
 
-    Alert.alert(
-      'Finalizar Percurso',
-      `Você validou ${validatedQRCodes.length} ponto(s). Deseja finalizar o percurso?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Finalizar', 
-          // Navega para a aba 'Progresso' dentro do MainApp (TabNavigator)
-          onPress: () => navigation.navigate('MainApp', { screen: 'Progresso' })
-        }
-      ]
-    );
-  };
+    Alert.alert(
+      'Finalizar Percurso',
+      `Você validou ${validatedQRCodes.length} ponto(s). Deseja finalizar o percurso?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Finalizar', 
+          // Navega para a aba 'Progresso' dentro do MainApp (TabNavigator)
+          onPress: () => navigation.navigate('MainApp', { screen: 'Progresso' })
+        }
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,14 +103,39 @@ const RouteScreen = () => {
       
       {/* Cabeçalho */}
       <View style={styles.header}>
+        {/* MODIFICADO: Botão de voltar com ícone e lógica da JourneysScreen */}
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          style={styles.backButton} // O estilo 'backButton' (padding: 8) é igual ao 'menuButton'
+          onPress={() => { 
+            try {
+              navigation.goBack();
+              return;
+            } catch (e) { 
+            }
+            
+            try {
+              const parent = (navigation as any).getParent?.();
+              if (parent && typeof parent.navigate === 'function') {
+                parent.navigate('Perfil'); // Fallback para 'Perfil' (como no exemplo)
+                return;
+              }
+            } catch (e) { 
+            }
+            
+            try {
+              (navigation as any).navigate('Perfil'); // Fallback final
+            } catch (e) {
+              
+            }
+          }}
         >
-          <Text style={styles.backButtonText}>← Voltar</Text>
+          <Ionicons name="chevron-back" size={28} color="#fff" />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Mapa do Percurso</Text>
-        <View style={{ width: 80 }} />
+
+        {/* MODIFICADO: Ajuste de largura para centralizar o título */}
+        <View style={{ width: 40 }} />
       </View>
       
       {/* Mapa */}
@@ -205,11 +233,12 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 8,
   },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  // REMOVIDO: backButtonText não é mais necessário
+  // backButtonText: {
+  //   color: '#fff',
+  //   fontSize: 16,
+  //   fontWeight: '600',
+  // },
   headerTitle: {
     fontSize: theme.fontSizes.large,
     fontWeight: theme.fontWeights.bold,
