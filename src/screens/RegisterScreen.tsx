@@ -143,23 +143,22 @@ const RegisterScreen = () => {
 
           {showPasswordHint && password.length > 0 && (
             <View style={styles.passwordHintContainer}>
-              {/* ... (seu hint de senha continua o mesmo) ... */}
               <Text style={styles.passwordHintTitle}>A senha deve conter:</Text>
-              <Text style={[styles.passwordHint, passwordValidation.hasMinLength && styles.passwordHintValid]}>
-                {passwordValidation.hasMinLength ? '✓' : '✗'} Mínimo de 8 caracteres
-              </Text>
-              <Text style={[styles.passwordHint, passwordValidation.hasUpperCase && styles.passwordHintValid]}>
-                {passwordValidation.hasUpperCase ? '✓' : '✗'} Uma letra maiúscula
-              </Text>
-              <Text style={[styles.passwordHint, passwordValidation.hasLowerCase && styles.passwordHintValid]}>
-                {passwordValidation.hasLowerCase ? '✓' : '✗'} Uma letra minúscula
-              </Text>
-              <Text style={[styles.passwordHint, passwordValidation.hasNumber && styles.passwordHintValid]}>
-                {passwordValidation.hasNumber ? '✓' : '✗'} Um número
-              </Text>
-              <Text style={[styles.passwordHint, passwordValidation.hasSpecialChar && styles.passwordHintValid]}>
-                {passwordValidation.hasSpecialChar ? '✓' : '✗'} Um caractere especial (!@#$%^&* etc.)
-              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasMinLength && styles.passwordHintValid]}>
+                {passwordValidation.hasMinLength ? '✓' : '✗'} Mínimo de 8 caracteres
+              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasUpperCase && styles.passwordHintValid]}>
+                {passwordValidation.hasUpperCase ? '✓' : '✗'} Uma letra maiúscula
+              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasLowerCase && styles.passwordHintValid]}>
+                {passwordValidation.hasLowerCase ? '✓' : '✗'} Uma letra minúscula
+              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasNumber && styles.passwordHintValid]}>
+                {passwordValidation.hasNumber ? '✓' : '✗'} Um número
+              </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasSpecialChar && styles.passwordHintValid]}>
+                {passwordValidation.hasSpecialChar ? '✓' : '✗'} Um caractere especial (!@#$%^&* etc.)
+              </Text>
             </View>
           )}
 
@@ -193,12 +192,12 @@ const RegisterScreen = () => {
             <Text style={styles.registerButtonText}>Cadastrar</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.loginContainer}>
+        {/* <View style={styles.loginContainer}>
           <Text style={styles.loginText}>Já possui uma conta?</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
             <Text style={styles.loginLink}>Entrar</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </KeyboardAvoidingView>
     </BaseScreen>
   );
