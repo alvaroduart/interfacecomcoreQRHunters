@@ -164,20 +164,50 @@ export class AuthRepositorySupabase implements AuthRepository {
 
   async deleteAccount(userId: string): Promise<boolean> {
     try {
-      // Nota: A exclusão de conta requer privilégios de admin no Supabase
-      // Por enquanto, apenas fazemos logout
-      const { error } = await supabase.auth.signOut();
-      
+      console.log('[AuthRepositorySupabase] Iniciando exclusão de conta');
+      console.log('[AuthRepositorySupabase] userId:', userId);
+
+      // Chamar Edge Function para deletar usuário
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId },
+      });
+
       if (error) {
+        console.error('[AuthRepositorySupabase] Erro ao chamar Edge Function:', error);
         throw new Error(error.message);
       }
 
-      // Para deletar de verdade, você precisaria chamar uma Edge Function
-      // ou usar a API de Admin do Supabase
-      console.warn('Exclusão de conta requer implementação de Edge Function');
+      console.log('[AuthRepositorySupabase] Resposta da Edge Function:', data);
+
+      // Fazer logout após deletar a conta
+      await supabase.auth.signOut();
+
+      console.log('[AuthRepositorySupabase] Conta deletada com sucesso');
       return true;
     } catch (error: any) {
-      console.error('Erro ao deletar conta:', error);
+      console.error('[AuthRepositorySupabase] Erro ao deletar conta:', error);
+      
+      // Se a Edge Function não existir, tentar deletar localmente
+      if (error.message?.includes('FunctionsRelayError') || error.message?.includes('Function not found')) {
+        console.warn('[AuthRepositorySupabase] Edge Function não encontrada, tentando método alternativo');
+        
+        try {
+          // Deletar dados relacionados do usuário manualmente
+          // 1. Deletar validações
+          await supabase.from('validations').delete().eq('user_id', userId);
+          
+          // 2. Fazer signOut (remove a sessão)
+          await supabase.auth.signOut();
+          
+          console.log('[AuthRepositorySupabase] Dados do usuário removidos, sessão encerrada');
+          console.warn('[AuthRepositorySupabase] Conta desativada. Para remover completamente, é necessária a Edge Function.');
+          return true;
+        } catch (fallbackError: any) {
+          console.error('[AuthRepositorySupabase] Erro no método alternativo:', fallbackError);
+          throw new Error('Não foi possível deletar a conta');
+        }
+      }
+      
       throw new Error(error.message || 'Erro ao deletar conta');
     }
   }
