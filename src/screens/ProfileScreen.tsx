@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Image, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
   TextInput,
   Alert,
   ActivityIndicator
@@ -14,11 +14,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/types';
-import theme from '../theme/theme';
-import { makeAuthUseCases } from '../core/factories';
-import { useAuth } from '../context/AuthContext';
-import { Password } from '../core/domain/value-objects/Password';
+import { RootStackParamList } from '../navigation/types'; // Verifique o caminho real para este arquivo
+import theme from '../theme/theme'; // Verifique o caminho real para este arquivo
+import { makeAuthUseCases } from '../core/factories'; // Verifique o caminho real para este arquivo
+import { useAuth } from '../context/AuthContext'; // Verifique o caminho real para este arquivo
+import { Password } from '../core/domain/value-objects/Password'; // Verifique o caminho real para este arquivo
 import * as ImagePicker from 'expo-image-picker';
 
 const ProfileScreen = () => {
@@ -32,35 +32,99 @@ const ProfileScreen = () => {
   const [isCurrentPasswordSecure, setIsCurrentPasswordSecure] = useState(true);
   const [isNewPasswordSecure, setIsNewPasswordSecure] = useState(true);
   const [isConfirmPasswordSecure, setIsConfirmPasswordSecure] = useState(true);
-  
+
   const openDrawer = () => {
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
-  const handlePickImage = async () => {
+  // NOVO: Função auxiliar para processar o resultado do ImagePicker
+  const processImageResult = async (result: ImagePicker.ImagePickerResult) => {
     try {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        // Assegura que fileName e mimeType tenham valores padrão
+        await handleUploadAvatar(
+          asset.uri,
+          asset.fileName || `avatar-${Date.now()}.jpg`, // Nome único
+          asset.mimeType || 'image/jpeg'
+        );
+      }
+    } catch (error) {
+      console.error('Erro ao processar imagem:', error);
+      Alert.alert('Erro', 'Não foi possível processar a imagem');
+    }
+  };
+
+  // NOVO: Função para abrir a CÂMERA
+  const handleLaunchCamera = async () => {
+    try {
+      // Pede permissão para a CÂMERA
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert('Permissão negada', 'Precisamos de acesso à câmera para tirar uma foto.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      await processImageResult(result);
+    } catch (error) {
+      console.error('Erro ao abrir a câmera:', error);
+      Alert.alert('Erro', 'Não foi possível abrir a câmera');
+    }
+  };
+
+  // NOVO: Função para abrir a GALERIA
+  const handleLaunchGallery = async () => {
+    try {
+      // Pede permissão para a GALERIA
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (status !== 'granted') {
         Alert.alert('Permissão negada', 'Precisamos de acesso à galeria para você escolher uma foto.');
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        await handleUploadAvatar(asset.uri, asset.fileName || 'avatar.jpg', asset.mimeType || 'image/jpeg');
-      }
+      await processImageResult(result);
     } catch (error) {
-      console.error('Erro ao selecionar imagem:', error);
-      Alert.alert('Erro', 'Não foi possível selecionar a imagem');
+      console.error('Erro ao selecionar da galeria:', error);
+      Alert.alert('Erro', 'Não foi possível abrir a galeria');
     }
+  };
+
+  // NOVO: Função para mostrar as opções de escolha (câmera ou galeria)
+  const showImagePickerOptions = () => {
+    Alert.alert(
+      'Alterar Foto de Perfil',
+      'Escolha uma opção para sua nova foto:',
+      [
+        {
+          text: 'Tirar Foto',
+          onPress: () => handleLaunchCamera(),
+        },
+        {
+          text: 'Escolher da Galeria',
+          onPress: () => handleLaunchGallery(),
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true } // Permite fechar clicando fora do alerta
+    );
   };
 
   const handleUploadAvatar = async (fileUri: string, fileName: string, fileType: string) => {
@@ -87,7 +151,7 @@ const ProfileScreen = () => {
       setUploadingAvatar(false);
     }
   };
-  
+
   const handleDeleteAccount = async () => {
     if (!user) return;
     Alert.alert(
@@ -112,7 +176,7 @@ const ProfileScreen = () => {
       ]
     );
   };
-  
+
   const handleUpdatePassword = async () => {
     if (!currentPassword) {
       Alert.alert('Erro', 'Digite sua senha atual');
@@ -124,20 +188,36 @@ const ProfileScreen = () => {
       return;
     }
 
+    // Validação básica da nova senha (adicione mais validações conforme a sua Password VO)
+    try {
+        // Exemplo simples: mínimo de 8 caracteres e deve conter letra e número
+        if (!newPassword || newPassword.length < 8) {
+            throw new Error('A nova senha deve ter pelo menos 8 caracteres.');
+        }
+        const complexityRegex = /^(?=.*[A-Za-z])(?=.*\d).+$/;
+        if (!complexityRegex.test(newPassword)) {
+            throw new Error('A nova senha deve conter pelo menos uma letra e um número.');
+        }
+    } catch (error: any) {
+        Alert.alert('Erro na nova senha', error.message);
+        return;
+    }
+
+
     if (user) {
       const { changePasswordUseCase } = makeAuthUseCases();
       try {
-        const success = await changePasswordUseCase.execute({ 
-          userId: user.id, 
-          oldPassword: currentPassword, 
-          newPassword 
+        const success = await changePasswordUseCase.execute({
+          userId: user.id,
+          oldPassword: currentPassword,
+          newPassword
         });
         if (success) {
-          Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
+          Alert.alert('Sucesso', 'Senha atualizada com sucesso! Por favor, faça login novamente com sua nova senha.');
           setCurrentPassword('');
           setNewPassword('');
           setConfirmPassword('');
-          logout();
+          logout(); // Força logout para o usuário fazer login com a nova senha
         } else {
           Alert.alert('Erro', 'Não foi possível atualizar a senha.');
         }
@@ -145,13 +225,13 @@ const ProfileScreen = () => {
         const message = err?.message || 'Não foi possível atualizar a senha.';
         Alert.alert('Erro', message);
       }
-    } 
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      
+
       <View style={styles.header}>
         <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
           <Ionicons name="menu" size={28} color="#fff" />
@@ -167,10 +247,9 @@ const ProfileScreen = () => {
               <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
           ) : (
-            // MODIFICADO: Lógica para exibir o avatar ou o ícone padrão
             user?.avatarUrl ? (
-              <Image 
-                source={{uri: user.avatarUrl}} 
+              <Image
+                source={{ uri: user.avatarUrl }}
                 style={styles.avatar}
               />
             ) : (
@@ -179,9 +258,9 @@ const ProfileScreen = () => {
               </View>
             )
           )}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.editAvatarButton}
-            onPress={handlePickImage}
+            onPress={showImagePickerOptions} 
             disabled={uploadingAvatar}
           >
             <Ionicons name="camera" size={24} color="#fff" />
@@ -189,10 +268,10 @@ const ProfileScreen = () => {
         </View>
         <Text style={styles.userName}>{user ? user.name.value : 'Nome do Usuário'}</Text>
       </View>
-      
+
       <View style={styles.settingsContainer}>
         <Text style={styles.sectionTitle}>Alterar senha</Text>
-        
+
         <View style={styles.passwordInputContainer}>
           <TextInput
             style={styles.passwordInput}
@@ -206,10 +285,10 @@ const ProfileScreen = () => {
             style={styles.eyeButton}
             onPress={() => setIsCurrentPasswordSecure(!isCurrentPasswordSecure)}
           >
-            <Ionicons 
-              name={isCurrentPasswordSecure ? 'eye-off' : 'eye'} 
-              size={24} 
-              color={theme.colors.text.secondary} 
+            <Ionicons
+              name={isCurrentPasswordSecure ? 'eye-off' : 'eye'}
+              size={24}
+              color={theme.colors.text.secondary}
             />
           </TouchableOpacity>
         </View>
@@ -227,10 +306,10 @@ const ProfileScreen = () => {
             style={styles.eyeButton}
             onPress={() => setIsNewPasswordSecure(!isNewPasswordSecure)}
           >
-            <Ionicons 
-              name={isNewPasswordSecure ? 'eye-off' : 'eye'} 
-              size={24} 
-              color={theme.colors.text.secondary} 
+            <Ionicons
+              name={isNewPasswordSecure ? 'eye-off' : 'eye'}
+              size={24}
+              color={theme.colors.text.secondary}
             />
           </TouchableOpacity>
         </View>
@@ -248,15 +327,15 @@ const ProfileScreen = () => {
             style={styles.eyeButton}
             onPress={() => setIsConfirmPasswordSecure(!isConfirmPasswordSecure)}
           >
-            <Ionicons 
-              name={isConfirmPasswordSecure ? 'eye-off' : 'eye'} 
-              size={24} 
-              color={theme.colors.text.secondary} 
+            <Ionicons
+              name={isConfirmPasswordSecure ? 'eye-off' : 'eye'}
+              size={24}
+              color={theme.colors.text.secondary}
             />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.updateButton}
           onPress={handleUpdatePassword}
           activeOpacity={0.8}
@@ -271,7 +350,7 @@ const ProfileScreen = () => {
           <Text style={styles.deleteButtonText}>Deletar perfil</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.backgroundCircle} />
     </SafeAreaView>
   );
@@ -293,29 +372,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: theme.colors.primary,
-      paddingTop: 10,
-      paddingBottom: 16,
-      paddingHorizontal: 12,
-      elevation: 4,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 2,
-    },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.primary,
+    paddingTop: 10,
+    paddingBottom: 16,
+    paddingHorizontal: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
   menuButton: {
     padding: 8,
   },
-    headerTitle: {
-      fontSize: 22,
-      fontWeight: 'bold',
-      color: '#fff',
-      letterSpacing: 1,
-    },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
+    letterSpacing: 1,
+  },
   profileContainer: {
     alignItems: 'center',
     marginTop: 30,
@@ -332,9 +411,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#fff',
   },
-  // NOVO: Estilo para o background do avatar padrão (o ícone)
   defaultAvatarBackground: {
-    backgroundColor: '#e0e0e0', // Um cinza claro
+    backgroundColor: '#e0e0e0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -369,17 +447,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
-    settingsContainer: {
-      paddingHorizontal: 24,
-      zIndex: 2,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: theme.colors.text.secondary,
-      marginBottom: 12,
-      marginLeft: 2,
-    },
+  settingsContainer: {
+    paddingHorizontal: 24,
+    zIndex: 2,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text.secondary,
+    marginBottom: 12,
+    marginLeft: 2,
+  },
   settingButton: {
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -415,22 +493,21 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
   },
-    deleteButton: {
-      backgroundColor: '#fff',
-      borderRadius: 10,
-      paddingVertical: 15,
-      alignItems: 'center',
-      marginTop: 8,
-      borderWidth: 1.5,
-      borderColor: '#FF4D4F',
-    },
-    deleteButtonText: {
-      color: '#FF4D4F',
-      fontSize: 16,
-      fontWeight: 'bold',
-      letterSpacing: 1,
-    },
-
+  deleteButton: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginTop: 8,
+    borderWidth: 1.5,
+    borderColor: '#FF4D4F',
+  },
+  deleteButtonText: {
+    color: '#FF4D4F',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
   passwordInputContainer: {
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
