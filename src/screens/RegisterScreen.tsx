@@ -42,22 +42,22 @@ const RegisterScreen = () => {
   const isPasswordValid = () => {
     // ... (sua função de validação continua a mesma)
     const hasMinLength = password.length >= 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':\"|,.<>\/?]/.test(password);
-    
-    return {
-      hasMinLength,
-      hasUpperCase,
-      hasLowerCase,
-      hasNumber,
-      hasSpecialChar,
-      isValid: hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar
-    };
-  };
-
-  const passwordValidation = isPasswordValid();
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':\"|,.<>\/?]/.test(password);
+    const hasNoSpaces = !/\s/.test(password);
+    
+    return {
+      hasMinLength,
+      hasUpperCase,
+      hasLowerCase,
+      hasNumber,
+      hasSpecialChar,
+      hasNoSpaces,
+      isValid: hasMinLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar && hasNoSpaces
+    };
+  };  const passwordValidation = isPasswordValid();
 
   const handleRegister = async () => {
     // ... (sua função de registro continua a mesma)
@@ -125,7 +125,7 @@ const RegisterScreen = () => {
               placeholder="Senha"
               placeholderTextColor={theme.colors.text.secondary}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => setPassword(text.replace(/\s/g, ''))} // Remove espaços
               onFocus={() => setShowPasswordHint(true)}
               secureTextEntry={isPasswordSecure} // Controlado pelo estado
             />
@@ -159,6 +159,9 @@ const RegisterScreen = () => {
               <Text style={[styles.passwordHint, passwordValidation.hasSpecialChar && styles.passwordHintValid]}>
                 {passwordValidation.hasSpecialChar ? '✓' : '✗'} Um caractere especial (!@#$%^&* etc.)
               </Text>
+              <Text style={[styles.passwordHint, passwordValidation.hasNoSpaces && styles.passwordHintValid]}>
+                {passwordValidation.hasNoSpaces ? '✓' : '✗'} Sem espaços
+              </Text>
             </View>
           )}
 
@@ -169,7 +172,7 @@ const RegisterScreen = () => {
               placeholder="Confirmar senha"
               placeholderTextColor={theme.colors.text.secondary}
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChangeText={(text) => setConfirmPassword(text.replace(/\s/g, ''))} // Remove espaços
               secureTextEntry={isConfirmPasswordSecure} // Controlado pelo estado
             />
             <TouchableOpacity 
