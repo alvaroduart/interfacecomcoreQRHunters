@@ -1,0 +1,9 @@
+node_modules
+.git
+__tests__/
+__mocks__/
+src/tests/
+src/core/tests/
+src/components/__snapshots__/
+*.spec.ts
+*.test.tsx
