@@ -183,26 +183,29 @@ const ProfileScreen = () => {
       return;
     }
 
+    if (!newPassword) {
+      Alert.alert('Erro', 'Digite a nova senha');
+      return;
+    }
+
+    if (!confirmPassword) {
+      Alert.alert('Erro', 'Confirme a nova senha');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       Alert.alert('Erro', 'As senhas não coincidem');
       return;
     }
 
-    // Validação básica da nova senha (adicione mais validações conforme a sua Password VO)
+    // Validação completa usando o VO Password
     try {
-        // Exemplo simples: mínimo de 8 caracteres e deve conter letra e número
-        if (!newPassword || newPassword.length < 8) {
-            throw new Error('A nova senha deve ter pelo menos 8 caracteres.');
-        }
-        const complexityRegex = /^(?=.*[A-Za-z])(?=.*\d).+$/;
-        if (!complexityRegex.test(newPassword)) {
-            throw new Error('A nova senha deve conter pelo menos uma letra e um número.');
-        }
+      // Tenta criar o VO, que já valida o regex
+      Password.create(newPassword);
     } catch (error: any) {
-        Alert.alert('Erro na nova senha', error.message);
-        return;
+      Alert.alert('Erro na nova senha', error.message || 'A nova senha não atende aos requisitos.');
+      return;
     }
-
 
     if (user) {
       const { changePasswordUseCase } = makeAuthUseCases();
@@ -222,7 +225,13 @@ const ProfileScreen = () => {
           Alert.alert('Erro', 'Não foi possível atualizar a senha.');
         }
       } catch (err: any) {
-        const message = err?.message || 'Não foi possível atualizar a senha.';
+        // Erros previstos: senha antiga inválida, usuário não encontrado, erro do backend
+        let message = err?.message || 'Não foi possível atualizar a senha.';
+        if (message.includes('Senha inválida')) {
+          message = 'A nova senha não atende aos requisitos.';
+        } else if (message.includes('Senha antiga inválida')) {
+          message = 'A senha atual está incorreta.';
+        }
         Alert.alert('Erro', message);
       }
     }
