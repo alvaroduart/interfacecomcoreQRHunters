@@ -18,12 +18,14 @@ import theme from '../theme/theme';
 import { CameraView, Camera, BarcodeScanningResult } from 'expo-camera';
 import * as Location from 'expo-location';
 import { makeQRCodeUseCases } from '../core/factories/QRCodeFactory';
+import { useJourney } from '../context/JourneyContext';
 
 const { width } = Dimensions.get('window');
 const SCANNER_SIZE = width * 0.65;
 
 const ScannerScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { activeJourney } = useJourney();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [hasLocationPermission, setHasLocationPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
@@ -195,6 +197,37 @@ const ScannerScreen = () => {
     );
   }
 
+  // 🚫 Bloquear se não houver jornada ativa
+  if (!activeJourney) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="chevron-back" size={28} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Scanner</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={styles.permissionContainer}>
+          <Ionicons name="map-outline" size={64} color={theme.colors.text.secondary} />
+          <Text style={styles.permissionTitle}>Nenhuma Jornada Ativa</Text>
+          <Text style={styles.permissionText}>
+            Você precisa iniciar uma jornada antes de escanear QR codes.
+          </Text>
+          <TouchableOpacity 
+            style={styles.permissionButton} 
+            onPress={() => navigation.navigate('Jornadas')}
+          >
+            <Text style={styles.permissionButtonText}>Ver Jornadas</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
@@ -261,6 +294,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 16,
     paddingHorizontal: 12,
+  },
+  backButton: {
+    padding: 8,
   },
   headerTitle: {
     fontSize: theme.fontSizes.large,

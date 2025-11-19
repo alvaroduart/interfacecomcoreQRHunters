@@ -4,10 +4,10 @@ import { FinishJourneyUseCase } from '../domain/use-cases/FinishJourneyUseCase';
 import { GetAllJourneysUseCase } from '../domain/use-cases/GetAllJourneysUseCase';
 import { GetJourneyUseCase } from '../domain/use-cases/GetJourneyUseCase';
 import { StartJourneyUseCase } from '../domain/use-cases/StartJourneyUseCase';
-import { JourneyRepositoryMock } from '../infra/repositories/JourneyRepositoryMock';
+import { JourneyRepositorySupabase } from '../infra/repositories/JourneyRepositorySupabase';
 
 export function makeJourneyUseCases() {
-  const journeyRepository: JourneyRepository = JourneyRepositoryMock.getInstance();
+  const journeyRepository: JourneyRepository = JourneyRepositorySupabase.getInstance();
 
   const completeJourneyPointUseCase = new CompleteJourneyPointUseCase(journeyRepository);
   const finishJourneyUseCase = new FinishJourneyUseCase(journeyRepository);
