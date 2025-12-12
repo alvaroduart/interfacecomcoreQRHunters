@@ -203,7 +203,7 @@ const ScannerScreen = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.navigate('Percurso' as never)}
             style={styles.backButton}
           >
             <Ionicons name="chevron-back" size={28} color="#fff" />
@@ -219,7 +219,7 @@ const ScannerScreen = () => {
           </Text>
           <TouchableOpacity 
             style={styles.permissionButton} 
-            onPress={() => navigation.navigate('Jornadas')}
+            onPress={() => navigation.navigate('Jornadas' as never)}
           >
             <Text style={styles.permissionButtonText}>Ver Jornadas</Text>
           </TouchableOpacity>

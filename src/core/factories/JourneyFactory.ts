@@ -4,10 +4,10 @@ import { FinishJourneyUseCase } from '../domain/use-cases/FinishJourneyUseCase';
 import { GetAllJourneysUseCase } from '../domain/use-cases/GetAllJourneysUseCase';
 import { GetJourneyUseCase } from '../domain/use-cases/GetJourneyUseCase';
 import { StartJourneyUseCase } from '../domain/use-cases/StartJourneyUseCase';
-import { JourneyRepositorySupabase } from '../infra/repositories/JourneyRepositorySupabase';
+import { JourneyRepositoryHybrid } from '../infra/repositories/JourneyRepositoryHybrid';
 
 export function makeJourneyUseCases() {
-  const journeyRepository: JourneyRepository = JourneyRepositorySupabase.getInstance();
+  const journeyRepository: JourneyRepository = JourneyRepositoryHybrid.getInstance();
 
   const completeJourneyPointUseCase = new CompleteJourneyPointUseCase(journeyRepository);
   const finishJourneyUseCase = new FinishJourneyUseCase(journeyRepository);
