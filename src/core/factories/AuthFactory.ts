@@ -6,12 +6,12 @@ import { RegisterUseCase } from '../domain/use-cases/RegisterUseCase';
 import { UpdateProfileUseCase } from '../domain/use-cases/UpdateProfileUseCase';
 import { UploadAvatarUseCase } from '../domain/use-cases/UploadAvatarUseCase';
 import { AuthRepositoryMock } from '../infra/repositories/AuthRepositoryMock';
-import { AuthRepositorySupabase } from '../infra/repositories/AuthRepositorySupabase';
+import { AuthRepositoryHybrid } from '../infra/repositories/AuthRepositoryHybrid';
 import { config } from '../config';
 
 export function makeAuthUseCases() {
   const authRepository: AuthRepository = config.repository === 'supabase'
-    ? AuthRepositorySupabase.getInstance()
+    ? AuthRepositoryHybrid.getInstance()
     : AuthRepositoryMock.getInstance();
 
   const changePasswordUseCase = new ChangePasswordUseCase(authRepository);

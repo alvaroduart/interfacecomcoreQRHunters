@@ -53,6 +53,7 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
       .select(`
         id,
         status,
+        created_at,
         qrcodes (
           id,
           code,
@@ -73,8 +74,7 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
         )
       `)
       .eq('user_id', userId)
-      .eq('status', 'acertou')
-      .order('created_at', { ascending: false});
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('[ProgressRepositoryHybrid] Erro ao buscar:', error);
@@ -106,7 +106,8 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
       const qrcode: any = validation.qrcodes;
       if (qrcode && !Array.isArray(qrcode) && !qrcodesMap.has(qrcode.id)) {
         try {
-          const mappedQRCode = this.mapToQRCode(qrcode);
+          // Passar status e created_at da validação para o mapeamento
+          const mappedQRCode = this.mapToQRCode(qrcode, validation.status, validation.created_at);
           qrcodesMap.set(qrcode.id, mappedQRCode);
         } catch (err) {
           console.warn('[ProgressRepositoryHybrid] Erro ao mapear QRCode:', qrcode.code, err);
@@ -126,7 +127,8 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
 
     const validations = await database.getAllAsync<any>(`
       SELECT DISTINCT
-        q.id, q.code, q.location_name, q.latitude, q.longitude, q.description, q.question_id
+        q.id, q.code, q.location_name, q.latitude, q.longitude, q.description, q.question_id,
+        v.status, v.created_at
       FROM validations v
       INNER JOIN qrcodes q ON v.qrcode_id = q.id
       WHERE v.user_id = ?
@@ -139,10 +141,10 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
 
     const qrcodes: QRCode[] = [];
 
-    for (const qrcode of validations) {
+    for (const validation of validations) {
       const question = await database.getFirstAsync<any>(`
         SELECT * FROM questions WHERE id = ?
-      `, [qrcode.question_id]);
+      `, [validation.question_id]);
 
       let questionEntity: Question | undefined;
 
@@ -168,14 +170,14 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
 
       if (questionEntity) {
         qrcodes.push(QRCode.create(
-          qrcode.id,
-          Code.create(qrcode.code),
-          Location.create(qrcode.location_name),
-          Coordinates.create(qrcode.latitude, qrcode.longitude),
+          validation.id,
+          Code.create(validation.code),
+          Location.create(validation.location_name),
+          Coordinates.create(validation.latitude, validation.longitude),
           questionEntity,
-          undefined,
-          undefined,
-          qrcode.description || ''
+          validation.created_at ? new Date(validation.created_at) : undefined,
+          validation.status as 'acertou' | 'errou',
+          validation.description || ''
         ));
       }
     }
@@ -183,7 +185,7 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
     return qrcodes;
   }
 
-  private mapToQRCode(data: any): QRCode {
+  private mapToQRCode(data: any, status?: 'acertou' | 'errou', createdAt?: string): QRCode {
     let question: Question | undefined;
 
     // Se tiver pergunta completa com respostas
@@ -201,7 +203,7 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
           answers
         );
       }
-    } 
+    }
     // Se tiver apenas a pergunta sem respostas, criar respostas dummy
     else if (data.questions && data.questions.id && data.questions.text) {
       const dummyAnswers: Answer[] = [
@@ -229,8 +231,8 @@ export class ProgressRepositoryHybrid implements ProgressRepository {
       Location.create(data.location_name),
       Coordinates.create(data.latitude, data.longitude),
       question,
-      undefined,
-      undefined,
+      createdAt ? new Date(createdAt) : undefined,
+      status || 'acertou',
       data.description || ''
     );
   }

@@ -7,10 +7,12 @@ import { AuthProvider } from './src/context/AuthContext';
 import { JourneyProvider } from './src/context/JourneyContext';
 import { SQLiteDatabase } from './src/core/infra/database/SQLiteDatabase';
 import { NetworkStatusIndicator } from './src/components/NetworkStatusIndicator';
+import UpdateScreen from './src/screens/UpdateScreen';
 
 export default function App() {
   const [isDbReady, setIsDbReady] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
+  const [updateChecked, setUpdateChecked] = useState(false);
 
   useEffect(() => {
     async function initializeDatabase() {
@@ -30,6 +32,11 @@ export default function App() {
 
     initializeDatabase();
   }, []);
+
+  // Mostrar tela de atualização primeiro
+  if (!updateChecked) {
+    return <UpdateScreen onFinish={() => setUpdateChecked(true)} />;
+  }
 
   if (!isDbReady) {
     return (

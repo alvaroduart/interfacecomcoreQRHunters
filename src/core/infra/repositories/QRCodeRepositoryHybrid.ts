@@ -273,7 +273,6 @@ export class QRCodeRepositoryHybrid implements QRCodeRepository {
         )
       `)
       .eq('user_id', userId)
-      .eq('status', 'acertou')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -290,7 +289,7 @@ export class QRCodeRepositoryHybrid implements QRCodeRepository {
     if (data && data.length > 0) {
       for (const validation of data) {
         const qrcodeId = validation.qrcode_id;
-        
+
         // Se ainda não vimos este QR Code, adicionar
         if (!seenQRCodeIds.has(qrcodeId)) {
           seenQRCodeIds.add(qrcodeId);
@@ -334,7 +333,7 @@ export class QRCodeRepositoryHybrid implements QRCodeRepository {
         q.description as qrcode_description
       FROM validations v
       INNER JOIN qrcodes q ON v.qrcode_id = q.id
-      WHERE v.user_id = ? AND v.status = 'acertou'
+      WHERE v.user_id = ?
       ORDER BY v.created_at DESC
     `, [userId]);
 
@@ -346,7 +345,7 @@ export class QRCodeRepositoryHybrid implements QRCodeRepository {
 
     for (const v of validations) {
       const qrcodeId = v.qrcode_id;
-      
+
       // Se ainda não vimos este QR Code, adicionar
       if (!seenQRCodeIds.has(qrcodeId)) {
         seenQRCodeIds.add(qrcodeId);
@@ -372,6 +371,130 @@ export class QRCodeRepositoryHybrid implements QRCodeRepository {
     console.log('[QRCodeRepositoryHybrid] Validações únicas (sem duplicatas):', uniqueValidations.length);
 
     return uniqueValidations;
+  }
+
+  /**
+   * Salva uma validação de QR code
+   */
+  async saveValidation(
+    userId: string,
+    qrCodeId: string,
+    answerId: string,
+    userLatitude: number,
+    userLongitude: number,
+    distanceMeters: number,
+    status: 'acertou' | 'errou'
+  ): Promise<void> {
+    const isOnline = await this.network.checkConnection();
+
+    if (isOnline) {
+      try {
+        await this.saveValidationToSupabase(
+          userId,
+          qrCodeId,
+          answerId,
+          userLatitude,
+          userLongitude,
+          distanceMeters,
+          status
+        );
+      } catch (error) {
+        console.error('[QRCodeRepositoryHybrid] Erro ao salvar no Supabase, salvando no cache...', error);
+        await this.saveValidationToCache(
+          userId,
+          qrCodeId,
+          answerId,
+          userLatitude,
+          userLongitude,
+          distanceMeters,
+          status
+        );
+      }
+    } else {
+      await this.saveValidationToCache(
+        userId,
+        qrCodeId,
+        answerId,
+        userLatitude,
+        userLongitude,
+        distanceMeters,
+        status
+      );
+    }
+  }
+
+  private async saveValidationToSupabase(
+    userId: string,
+    qrCodeId: string,
+    answerId: string,
+    userLatitude: number,
+    userLongitude: number,
+    distanceMeters: number,
+    status: 'acertou' | 'errou'
+  ): Promise<void> {
+    console.log('[QRCodeRepositoryHybrid] Salvando validação no Supabase');
+
+    const { data, error } = await supabase.from('validations').insert({
+      user_id: userId,
+      qrcode_id: qrCodeId,
+      answer_id: answerId,
+      user_latitude: userLatitude,
+      user_longitude: userLongitude,
+      distance_meters: distanceMeters,
+      status,
+    }).select();
+
+    if (error) {
+      console.error('[QRCodeRepositoryHybrid] Erro ao salvar validação no Supabase:', error);
+      throw error;
+    }
+
+    console.log('[QRCodeRepositoryHybrid] Validação salva no Supabase com sucesso');
+
+    // Sincronizar com cache
+    if (data && data.length > 0) {
+      await this.cacheSync.syncValidation(data[0]);
+    }
+  }
+
+  private async saveValidationToCache(
+    userId: string,
+    qrCodeId: string,
+    answerId: string,
+    userLatitude: number,
+    userLongitude: number,
+    distanceMeters: number,
+    status: 'acertou' | 'errou'
+  ): Promise<void> {
+    console.log('[QRCodeRepositoryHybrid] Salvando validação no cache');
+
+    const database = await this.db.getDatabase();
+    const validationId = `validation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Delete any existing validation for this user+qrcode combination
+    // This prevents duplicates when saving offline multiple times
+    await database.runAsync(
+      `DELETE FROM validations WHERE user_id = ? AND qrcode_id = ?`,
+      [userId, qrCodeId]
+    );
+
+    // Insert the new validation
+    await database.runAsync(`
+      INSERT INTO validations (id, user_id, qrcode_id, answer_id, user_latitude, user_longitude, distance_meters, status, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      validationId,
+      userId,
+      qrCodeId,
+      answerId,
+      userLatitude,
+      userLongitude,
+      distanceMeters,
+      status,
+      new Date().toISOString()
+    ]);
+
+    console.log('[QRCodeRepositoryHybrid] Validação salva no cache com sucesso');
   }
 
   private mapToQRCode(data: any): QRCode {

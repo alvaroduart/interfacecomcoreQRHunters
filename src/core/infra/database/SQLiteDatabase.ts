@@ -8,7 +8,7 @@ export class SQLiteDatabase {
   private static instance: SQLiteDatabase;
   private database: SQLite.SQLiteDatabase | null = null;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): SQLiteDatabase {
     if (!SQLiteDatabase.instance) {
@@ -23,11 +23,11 @@ export class SQLiteDatabase {
   async init(): Promise<void> {
     try {
       console.log('[SQLiteDatabase] Inicializando banco de dados...');
-      
+
       this.database = await SQLite.openDatabaseAsync('qrhunters_cache.db');
-      
+
       await this.createTables();
-      
+
       console.log('[SQLiteDatabase] Banco de dados inicializado com sucesso');
     } catch (error) {
       console.error('[SQLiteDatabase] Erro ao inicializar banco:', error);
@@ -44,6 +44,16 @@ export class SQLiteDatabase {
     }
 
     await this.database.execAsync(`
+      -- Tabela de usuários (cache local)
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        avatar_url TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Tabela de perguntas
       CREATE TABLE IF NOT EXISTS questions (
         id TEXT PRIMARY KEY,
@@ -125,6 +135,7 @@ export class SQLiteDatabase {
       );
 
       -- Índices para melhor performance
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_answers_question_id ON answers(question_id);
       CREATE INDEX IF NOT EXISTS idx_qrcodes_code ON qrcodes(code);
       CREATE INDEX IF NOT EXISTS idx_qrcodes_question_id ON qrcodes(question_id);
@@ -163,6 +174,7 @@ export class SQLiteDatabase {
       DELETE FROM qrcodes;
       DELETE FROM answers;
       DELETE FROM questions;
+      DELETE FROM users;
     `);
 
     console.log('[SQLiteDatabase] Todas as tabelas foram limpas');

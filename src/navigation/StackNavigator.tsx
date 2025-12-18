@@ -10,21 +10,28 @@ import { useAuth } from '../context/AuthContext';
 const Stack = createStackNavigator();
 
 export default function StackNavigator() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [showSplash, setShowSplash] = React.useState(true);
 
   // Exibe splash por um curto período ao iniciar
   useEffect(() => {
-    if (showSplash) {
+    if (showSplash && !isLoading) {
       setTimeout(() => setShowSplash(false), 2000);
     }
-  }, [showSplash]);
+  }, [showSplash, isLoading]);
+
+  // Mostrar splash enquanto está carregando a sessão
+  if (isLoading || showSplash) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Splash" component={SplashScreen} />
+      </Stack.Navigator>
+    );
+  }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {showSplash ? (
-        <Stack.Screen name="Splash" component={SplashScreen} />
-      ) : !user ? (
+      {!user ? (
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />

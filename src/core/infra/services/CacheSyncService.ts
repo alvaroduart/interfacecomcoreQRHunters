@@ -91,8 +91,16 @@ export class CacheSyncService {
     try {
       const database = await this.db.getDatabase();
 
+      // Delete any existing validation for this user+qrcode combination
+      // This prevents duplicates when syncing from Supabase after an offline save
       await database.runAsync(
-        `INSERT OR REPLACE INTO validations (id, user_id, qrcode_id, answer_id, user_latitude, user_longitude, distance_meters, status, created_at)
+        `DELETE FROM validations WHERE user_id = ? AND qrcode_id = ?`,
+        [validationData.user_id, validationData.qrcode_id]
+      );
+
+      // Insert the new validation
+      await database.runAsync(
+        `INSERT INTO validations (id, user_id, qrcode_id, answer_id, user_latitude, user_longitude, distance_meters, status, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           validationData.id,
@@ -192,6 +200,34 @@ export class CacheSyncService {
   }
 
   /**
+   * Sincroniza dados do usuário para o cache local
+   */
+  async syncUser(userData: any): Promise<void> {
+    try {
+      const database = await this.db.getDatabase();
+
+      await database.runAsync(
+        `INSERT OR REPLACE INTO users (id, name, email, avatar_url, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          userData.id,
+          userData.name,
+          userData.email,
+          userData.avatar_url || null,
+          userData.created_at || new Date().toISOString(),
+          new Date().toISOString() // Sempre atualizar updated_at
+        ]
+      );
+
+      console.log('[CacheSyncService] Usuário sincronizado:', userData.email);
+    } catch (error) {
+      console.error('[CacheSyncService] Erro ao sincronizar usuário:', error);
+      throw error;
+    }
+  }
+
+
+  /**
    * Sincroniza dados offline pendentes para o Supabase quando voltar online
    */
   async syncPendingToSupabase(userId: string): Promise<void> {
@@ -201,7 +237,7 @@ export class CacheSyncService {
       // Buscar validações criadas offline (que não existem no Supabase)
       // Esta é uma implementação básica - você pode adicionar uma coluna 'synced' para rastrear
       console.log('[CacheSyncService] Sincronizando dados pendentes para Supabase...');
-      
+
       // TODO: Implementar lógica de sincronização de volta para o Supabase
       // Por exemplo, buscar validações recentes e tentar enviá-las
 
