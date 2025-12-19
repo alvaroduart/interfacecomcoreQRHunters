@@ -12,4 +12,22 @@
   - Testar atualizar senha e excluir conta
   - Alterar foto de perfil (expo-image-picker)
 
+## Utilização
+- ir no releases do repositório
+- baixar apk
+- cadastrar usuário
+- ver jornadas
+- iniciar percurso CEFET
+- ir para o scanner
+- clicar no TabNavigation em scanner
+- ler QR Code e responder pergunta
+- checar progresso
+- reiniciar app — continuará conectado por causa do SQLite
+- ligar internet
+- abrir jornada e scanner
+- desligar internet
+- ler QR Code
+- checar progresso e percurso
+- ligar internet e reiniciar o app
+
 
